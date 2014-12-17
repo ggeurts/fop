@@ -149,8 +149,8 @@ public final class RtfFontManager {
         for (int i = 0; i < len; i++) {
             header.writeGroupMark(true);
             header.newLine();
-            header.write("\\f" + i);
-            header.write(" " + (String) fontTable.elementAt(i));
+            header.writeControlWord("f", i);
+            header.write((String)fontTable.elementAt(i));
             header.write(";");
             header.writeGroupMark(false);
         }

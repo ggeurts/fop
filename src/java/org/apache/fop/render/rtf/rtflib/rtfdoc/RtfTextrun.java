@@ -63,7 +63,7 @@ public class RtfTextrun extends RtfContainer {
     /**  Class which represents the opening of a RTF group mark.*/
     private class RtfOpenGroupMark extends RtfElement {
 
-        RtfOpenGroupMark(RtfContainer parent, Writer w, RtfAttributes attr)
+        RtfOpenGroupMark(RtfContainer parent, RtfWriter w, RtfAttributes attr)
                 throws IOException {
             super(parent, w, attr);
         }
@@ -89,7 +89,7 @@ public class RtfTextrun extends RtfContainer {
     private class RtfCloseGroupMark extends RtfElement {
         private int breakType = BREAK_NONE;
 
-        RtfCloseGroupMark(RtfContainer parent, Writer w, int breakType)
+        RtfCloseGroupMark(RtfContainer parent, RtfWriter w, int breakType)
                   throws IOException {
             super(parent, w);
             this.breakType = breakType;
@@ -145,7 +145,7 @@ public class RtfTextrun extends RtfContainer {
     }
 
     /** Create an RTF container as a child of given container */
-    RtfTextrun(RtfContainer parent, Writer w, RtfAttributes attrs) throws IOException {
+    RtfTextrun(RtfContainer parent, RtfWriter w, RtfAttributes attrs) throws IOException {
         super(parent, w, attrs);
     }
 
@@ -354,7 +354,7 @@ public class RtfTextrun extends RtfContainer {
      * @return new or existing RtfTextrun object.
      * @throws IOException for I/O problems
      */
-    public static RtfTextrun getTextrun(RtfContainer container, Writer writer, RtfAttributes attrs)
+    public static RtfTextrun getTextrun(RtfContainer container, RtfWriter writer, RtfAttributes attrs)
             throws IOException {
 
         List list = container.getChildren();

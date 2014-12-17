@@ -45,7 +45,7 @@ public class RtfParagraphKeepTogether extends RtfContainer {
 
 
     /**    RtfParagraphKeepTogether*/
-    RtfParagraphKeepTogether(IRtfParagraphContainer parent, Writer w) throws IOException {
+    RtfParagraphKeepTogether(IRtfParagraphContainer parent, RtfWriter w) throws IOException {
         super((RtfContainer)parent, w);
     }
 

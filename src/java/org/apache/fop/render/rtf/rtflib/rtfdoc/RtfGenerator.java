@@ -33,7 +33,7 @@ public class RtfGenerator extends RtfElement {
      * @param w a writer
      * @throws IOException if not caught
      */
-    public RtfGenerator(RtfHeader h, Writer w) throws IOException {
+    public RtfGenerator(RtfHeader h, RtfWriter w) throws IOException {
         super(h, w);
     }
 

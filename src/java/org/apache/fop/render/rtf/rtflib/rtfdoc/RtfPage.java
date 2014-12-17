@@ -73,7 +73,7 @@ extends RtfContainer {
 
     /**    RtfPage creates new page attributes with the parent container, the writer
            and the attributes*/
-    RtfPage(RtfPageArea parent, Writer w, RtfAttributes attrs) throws IOException {
+    RtfPage(RtfPageArea parent, RtfWriter w, RtfAttributes attrs) throws IOException {
         super((RtfContainer)parent, w);
         attrib = attrs;
     }

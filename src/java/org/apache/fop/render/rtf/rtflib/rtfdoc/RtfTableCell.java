@@ -75,7 +75,7 @@ public class RtfTableCell
     public static final int MERGE_WITH_PREVIOUS = 2;
 
     /** Create an RTF element as a child of given container */
-    RtfTableCell(RtfTableRow parent, Writer w, int cellWidth, int idNum) throws IOException {
+    RtfTableCell(RtfTableRow parent, RtfWriter w, int cellWidth, int idNum) throws IOException {
         super(parent, w);
         id = idNum;
         parentRow = parent;
@@ -86,7 +86,7 @@ public class RtfTableCell
     }
 
     /** Create an RTF element as a child of given container */
-    RtfTableCell(RtfTableRow parent, Writer w, int cellWidth, RtfAttributes attrs,
+    RtfTableCell(RtfTableRow parent, RtfWriter w, int cellWidth, RtfAttributes attrs,
             int idNum) throws IOException {
         super(parent, w, attrs);
         id = idNum;
@@ -318,7 +318,7 @@ public class RtfTableCell
         if (getRow().getTable().isNestedTable()) {
             //nested table
             if (lastBreak == null) {
-                writeControlWordNS("nestcell");
+                writeControlWord("nestcell");
             }
             writeGroupMark(true);
             writeControlWord("nonesttables");

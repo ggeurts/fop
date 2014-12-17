@@ -38,7 +38,7 @@ import java.io.Writer;
 
 class RtfFontTable extends RtfElement {
     /** Create an RTF header */
-    RtfFontTable(RtfHeader h, Writer w) throws IOException {
+    RtfFontTable(RtfHeader h, RtfWriter w) throws IOException {
         super(h, w);
     }
 

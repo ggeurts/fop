@@ -38,7 +38,7 @@ import java.io.Writer;
 public class RtfString extends RtfElement {
     private String text = "";
 
-    RtfString(RtfContainer parent, Writer w, String s)
+    RtfString(RtfContainer parent, RtfWriter w, String s)
     throws IOException {
         super(parent, w);
 
@@ -57,7 +57,7 @@ public class RtfString extends RtfElement {
     * @throws IOException for I/O problems
     */
     protected void writeRtfContent() throws IOException {
-        RtfStringConverter.getInstance().writeRtfString(writer, text);
+        write(text);
     }
 
     /** @return the text */

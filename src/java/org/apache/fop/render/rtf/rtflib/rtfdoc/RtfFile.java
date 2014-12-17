@@ -58,7 +58,7 @@ extends RtfContainer {
      * @throws IOException for I/O problems
      */
     public RtfFile(Writer w) throws IOException {
-        super(null, w);
+        super(null, new RtfWriter(w));
     }
 
     /** optional log channel */

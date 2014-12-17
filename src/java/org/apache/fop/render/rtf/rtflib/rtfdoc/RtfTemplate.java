@@ -84,7 +84,7 @@ public final class RtfTemplate  {
 
         header.writeGroupMark(true);
         header.writeControlWord("template");
-        header.writeRtfString(this.templateFilePath);
+        header.write(this.templateFilePath);
         header.writeGroupMark(false);
 
         header.writeGroupMark(true);

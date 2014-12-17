@@ -39,7 +39,7 @@ extends RtfContainer {
     private RtfPage currentPage;
 
     /** Create an RTF element as a child of given container */
-    RtfPageArea(RtfFile f, Writer w) throws IOException {
+    RtfPageArea(RtfFile f, RtfWriter w) throws IOException {
         super(f, w);
     }
 

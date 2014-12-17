@@ -187,7 +187,7 @@ public final class RtfColorTable {
         //which may confuse Wordpad.
         //This also implicitly writes the first color (=index 0), which
         //is reserved for auto-colored.
-        header.write("\\colortbl;");
+        header.writeControlWord("colortbl;");
 
         int len = colorTable.size();
 
@@ -195,9 +195,10 @@ public final class RtfColorTable {
             int identifier = ((Integer) colorTable.get(i)).intValue();
 
             header.newLine();
-            header.write("\\red" + determineColorLevel(identifier, RED));
-            header.write("\\green" + determineColorLevel(identifier, GREEN));
-            header.write("\\blue" + determineColorLevel(identifier, BLUE) + ";");
+            header.writeControlWord("red", determineColorLevel(identifier, RED));
+            header.writeControlWord("green", determineColorLevel(identifier, GREEN));
+            header.writeControlWord("blue", determineColorLevel(identifier, BLUE));
+            header.write(";");
         }
 
         header.newLine();

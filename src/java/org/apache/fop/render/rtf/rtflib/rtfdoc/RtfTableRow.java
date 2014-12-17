@@ -48,13 +48,13 @@ public class RtfTableRow extends RtfContainer implements ITableAttributes {
 
 
     /** Create an RTF element as a child of given container */
-    RtfTableRow(RtfTable parent, Writer w, int idNum) throws IOException {
+    RtfTableRow(RtfTable parent, RtfWriter w, int idNum) throws IOException {
         super(parent, w);
         id = idNum;
     }
 
     /** Create an RTF element as a child of given container */
-    RtfTableRow(RtfTable parent, Writer w, RtfAttributes attrs, int idNum) throws IOException {
+    RtfTableRow(RtfTable parent, RtfWriter w, RtfAttributes attrs, int idNum) throws IOException {
         super(parent, w, attrs);
         id = idNum;
     }
@@ -312,7 +312,7 @@ public class RtfTableRow extends RtfContainer implements ITableAttributes {
             writeGroupMark(true);
             writeStarControlWord("nesttableprops");
             writeRowAndCellsDefintions();
-            writeControlWordNS("nestrow");
+            writeControlWord("nestrow");
             writeGroupMark(false);
 
             writeGroupMark(true);

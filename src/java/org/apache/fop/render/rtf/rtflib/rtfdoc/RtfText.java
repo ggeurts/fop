@@ -195,7 +195,7 @@ public class RtfText extends RtfElement {
     /** Create an RtfText in given IRtfTextContainer.
      *  @param str optional initial text content
      */
-    RtfText(IRtfTextContainer parent, Writer w, String str, RtfAttributes attr)
+    RtfText(IRtfTextContainer parent, RtfWriter w, String str, RtfAttributes attr)
            throws IOException {
         super((RtfContainer)parent, w);
         this.text = str;
@@ -230,7 +230,7 @@ public class RtfText extends RtfElement {
                 if (attr != null && mustWriteAttributes()) {
                     writeAttributes(attr, RtfText.ATTR_NAMES);
                 }
-                RtfStringConverter.getInstance().writeRtfString(writer, text);
+                write(text);
                 writeGroupMark(false);
             }
         }

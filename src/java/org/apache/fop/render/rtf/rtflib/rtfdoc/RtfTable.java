@@ -51,7 +51,7 @@ public class RtfTable extends RtfContainer {
     private int nestedTableDepth;
 
     /** Create an RTF element as a child of given container */
-    RtfTable(IRtfTableContainer parent, Writer w, ITableColumnsInfo tc)
+    RtfTable(IRtfTableContainer parent, RtfWriter w, ITableColumnsInfo tc)
             throws IOException {
         super((RtfContainer)parent, w);
         // Line added by Boris Poudérous on 07/22/2002
@@ -61,7 +61,7 @@ public class RtfTable extends RtfContainer {
     /** Create an RTF element as a child of given container
    * Modified by Boris Poudérous in order to process 'number-columns-spanned' attribute
    */
-  RtfTable(IRtfTableContainer parent, Writer w, RtfAttributes attrs,
+  RtfTable(IRtfTableContainer parent, RtfWriter w, RtfAttributes attrs,
            ITableColumnsInfo tc) throws IOException {
         super((RtfContainer)parent, w, attrs);
     // Line added by Boris Poudérous on 07/22/2002
@@ -119,7 +119,7 @@ public class RtfTable extends RtfContainer {
      */
     protected void writeRtfPrefix() throws IOException {
         if (isNestedTable()) {
-            writeControlWordNS("pard");
+            writeControlWord("pard");
         }
 
         writeGroupMark(true);

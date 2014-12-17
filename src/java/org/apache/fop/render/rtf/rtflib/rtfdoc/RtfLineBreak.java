@@ -37,7 +37,7 @@ import java.io.Writer;
 
 public class RtfLineBreak extends RtfElement {
     /** Create an RTF paragraph as a child of given container with default attributes */
-    RtfLineBreak(IRtfTextContainer parent, Writer w) throws IOException {
+    RtfLineBreak(IRtfTextContainer parent, RtfWriter w) throws IOException {
         super((RtfContainer)parent, w);
     }
 

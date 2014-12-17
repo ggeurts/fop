@@ -106,7 +106,7 @@ public class RtfListItem extends RtfContainer
     }
 
     /** Create an RTF list item as a child of given container with default attributes */
-    RtfListItem(RtfList parent, Writer w) throws IOException {
+    RtfListItem(RtfList parent, RtfWriter w) throws IOException {
         super((RtfContainer)parent, w);
         parentList = parent;
     }
@@ -135,7 +135,7 @@ public class RtfListItem extends RtfContainer
     }
 
     /** Create an RTF list item as a child of given container with given attributes */
-    RtfListItem(RtfList parent, Writer w, RtfAttributes attr) throws IOException {
+    RtfListItem(RtfList parent, RtfWriter w, RtfAttributes attr) throws IOException {
         super((RtfContainer)parent, w, attr);
         parentList = parent;
     }

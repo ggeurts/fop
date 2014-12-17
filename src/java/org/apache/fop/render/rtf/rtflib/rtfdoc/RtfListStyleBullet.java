@@ -78,11 +78,11 @@ public class RtfListStyleBullet extends RtfListStyle {
     public void writeLevelGroup(RtfElement element) throws IOException {
         element.attrib.set(RtfListTable.LIST_NUMBER_TYPE, 23);
         element.writeGroupMark(true);
-        element.writeOneAttributeNS(RtfListTable.LIST_TEXT_FORM, "\\'01\\'b7");
+        element.writeOneAttribute(RtfListTable.LIST_TEXT_FORM, "\\'01\\'b7");
         element.writeGroupMark(false);
 
         element.writeGroupMark(true);
-        element.writeOneAttributeNS(RtfListTable.LIST_NUM_POSITION, null);
+        element.writeOneAttribute(RtfListTable.LIST_NUM_POSITION, null);
         element.writeGroupMark(false);
 
         element.attrib.set(RtfListTable.LIST_FONT_TYPE, 2);

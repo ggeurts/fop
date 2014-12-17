@@ -37,7 +37,7 @@ import java.io.Writer;
 public class RtfNull
 extends RtfContainer {
 
-    RtfNull(RtfPage parent, Writer w) throws IOException {
+    RtfNull(RtfPage parent, RtfWriter w) throws IOException {
         super((RtfContainer)parent, w);
     }
 }

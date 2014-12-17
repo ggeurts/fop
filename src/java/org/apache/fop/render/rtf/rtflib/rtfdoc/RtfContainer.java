@@ -46,12 +46,12 @@ public class RtfContainer extends RtfElement {
     private RtfElement lastChild;
 
     /** Create an RTF container as a child of given container */
-    RtfContainer(RtfContainer parent, Writer w) throws IOException {
+    RtfContainer(RtfContainer parent, RtfWriter w) throws IOException {
         this(parent, w, null);
     }
 
     /** Create an RTF container as a child of given container with given attributes */
-    RtfContainer(RtfContainer parent, Writer w, RtfAttributes attr) throws IOException {
+    RtfContainer(RtfContainer parent, RtfWriter w, RtfAttributes attr) throws IOException {
         super(parent, w, attr);
         children = new LinkedList();
     }

@@ -41,7 +41,7 @@ public class RtfFootnote extends RtfContainer
      * @param w a writer
      * @throws IOException if not caught
      */
-    RtfFootnote(RtfContainer parent, Writer w) throws IOException {
+    RtfFootnote(RtfContainer parent, RtfWriter w) throws IOException {
         super(parent, w);
         textrunInline = new RtfTextrun(this, writer, null);
         body = new RtfContainer(this, writer);

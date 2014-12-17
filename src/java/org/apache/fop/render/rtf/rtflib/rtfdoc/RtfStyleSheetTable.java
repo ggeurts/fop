@@ -223,7 +223,8 @@ public final class RtfStyleSheetTable {
                 header.writeAttributes((RtfAttributes) o, RtfText.ALIGNMENT);
             }
 
-            header.write(name + ";");
+            header.write(name);
+            header.write(";");
             header.writeGroupMark(false);
         }
         header.writeGroupMark(false);

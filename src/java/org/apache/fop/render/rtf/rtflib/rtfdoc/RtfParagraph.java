@@ -65,12 +65,12 @@ implements IRtfTextContainer, IRtfPageBreakContainer, IRtfHyperLinkContainer,
     private static final String[] PARA_ATTRIBUTES = {"intbl"};
 
     /** Create an RTF paragraph as a child of given container with default attributes */
-    RtfParagraph(IRtfParagraphContainer parent, Writer w) throws IOException {
+    RtfParagraph(IRtfParagraphContainer parent, RtfWriter w) throws IOException {
         super((RtfContainer)parent, w);
     }
 
     /** Create an RTF paragraph as a child of given container with given attributes */
-    RtfParagraph(IRtfParagraphContainer parent, Writer w, RtfAttributes attr) throws IOException {
+    RtfParagraph(IRtfParagraphContainer parent, RtfWriter w, RtfAttributes attr) throws IOException {
         super((RtfContainer)parent, w, attr);
     }
 

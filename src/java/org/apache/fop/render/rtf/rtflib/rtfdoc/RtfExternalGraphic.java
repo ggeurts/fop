@@ -300,7 +300,7 @@ public class RtfExternalGraphic extends RtfElement {
      * @param writer a <code>Writer</code> value
      * @throws IOException for I/O problems
      */
-    public RtfExternalGraphic(RtfContainer container, Writer writer) throws IOException {
+    public RtfExternalGraphic(RtfContainer container, RtfWriter writer) throws IOException {
         super(container, writer);
     }
 
@@ -312,7 +312,7 @@ public class RtfExternalGraphic extends RtfElement {
      * @param attributes a <code>RtfAttributes</code> value
      * @throws IOException for I/O problems
      */
-    public RtfExternalGraphic(RtfContainer container, Writer writer,
+    public RtfExternalGraphic(RtfContainer container, RtfWriter writer,
     RtfAttributes attributes) throws IOException {
         super(container, writer, attributes);
     }
@@ -328,12 +328,12 @@ public class RtfExternalGraphic extends RtfElement {
          * @throws IOException for I/O problems
          */
     protected void writeRtfContent() throws IOException {
-            try {
-                writeRtfContentWithException();
-            } catch (ExternalGraphicException ie) {
-                writeExceptionInRtf(ie);
-            }
+        try {
+            writeRtfContentWithException();
+        } catch (ExternalGraphicException ie) {
+            writeExceptionInRtf(ie);
         }
+    }
 
     /**
      * Writes the RTF content to m_writer - this one throws ExternalGraphicExceptions
@@ -354,11 +354,11 @@ public class RtfExternalGraphic extends RtfElement {
 
         String linkToRoot = System.getProperty("jfor_link_to_root");
         if (url != null && linkToRoot != null) {
-            writer.write("{\\field {\\* \\fldinst { INCLUDEPICTURE \"");
+            writer.writeRaw("{\\field {\\* \\fldinst { INCLUDEPICTURE \"");
             writer.write(linkToRoot);
             File urlFile = new File(url.getFile());
             writer.write(urlFile.getName());
-            writer.write("\" \\\\* MERGEFORMAT \\\\d }}}");
+            writer.writeRaw("\" \\\\* MERGEFORMAT \\\\d }}}");
             return;
         }
 
@@ -407,38 +407,15 @@ public class RtfExternalGraphic extends RtfElement {
         writeGroupMark(true);
         writeControlWord("pict");
 
-        StringBuffer buf = new StringBuffer(imagedata.length * 3);
-
         writeControlWord(imageformat.getRtfTag());
 
         computeImageSize();
         writeSizeInfo();
         writeAttributes(getRtfAttributes(), null);
 
-        for (int i = 0; i < imagedata.length; i++) {
-            int iData = imagedata [i];
-
-            // Make positive byte
-            if (iData < 0) {
-                iData += 256;
-            }
-
-            if (iData < 16) {
-                // Set leading zero and append
-                buf.append('0');
-            }
-
-            buf.append(Integer.toHexString(iData));
-        }
-
-        int len = buf.length();
-        char[] chars = new char[len];
-
-        buf.getChars(0, len, chars, 0);
-        writer.write(chars);
+        writer.write(imagedata);
 
         // Writes the end of RTF image
-
         writeGroupMark(false);
         writeGroupMark(false);
     }

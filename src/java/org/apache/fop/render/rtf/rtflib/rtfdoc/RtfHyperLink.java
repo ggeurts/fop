@@ -66,7 +66,7 @@ implements IRtfTextContainer,
      * @param attr a <code>RtfAttributes</code> value
      * @throws IOException for I/O problems
      */
-    public RtfHyperLink(IRtfTextContainer parent, Writer writer, String str, RtfAttributes attr)
+    public RtfHyperLink(IRtfTextContainer parent, RtfWriter writer, String str, RtfAttributes attr)
         throws IOException {
         super((RtfContainer) parent, writer, attr);
         new RtfText(this, writer, str, attr);
@@ -80,7 +80,7 @@ implements IRtfTextContainer,
      * @param attr a <code>RtfAttributes</code> value
      * @throws IOException for I/O problems
      */
-    public RtfHyperLink(RtfTextrun parent, Writer writer, RtfAttributes attr)
+    public RtfHyperLink(RtfTextrun parent, RtfWriter writer, RtfAttributes attr)
         throws IOException {
         super((RtfContainer) parent, writer, attr);
     }
@@ -102,7 +102,9 @@ implements IRtfTextContainer,
         super.writeGroupMark(true);
         super.writeStarControlWord("fldinst");
 
-        writer.write("HYPERLINK \"" + url + "\" ");
+        writer.writeRaw("HYPERLINK \"");
+        writer.write(url);
+        writer.writeRaw("\" ");
         super.writeGroupMark(false);
 
         super.writeGroupMark(true);

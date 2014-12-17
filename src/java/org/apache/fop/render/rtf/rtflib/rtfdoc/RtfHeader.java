@@ -45,7 +45,7 @@ class RtfHeader extends RtfContainer {
     private final Map userProperties = new HashMap();
 
     /** Create an RTF header */
-    RtfHeader(RtfFile f, Writer w) throws IOException {
+    RtfHeader(RtfFile f, RtfWriter w) throws IOException {
         super(f, w);
         new RtfFontTable(this, w);
         new RtfGenerator(this, w);
@@ -73,31 +73,16 @@ class RtfHeader extends RtfContainer {
                 final Map.Entry entry = (Map.Entry)it.next();
                 writeGroupMark(true);
                 writeControlWord("propname");
-                RtfStringConverter.getInstance().writeRtfString(writer,
-                        entry.getKey().toString());
+                write(entry.getKey().toString());
                 writeGroupMark(false);
                 writeControlWord("proptype30");
                 writeGroupMark(true);
                 writeControlWord("staticval");
-                RtfStringConverter.getInstance().writeRtfString(writer,
-                        entry.getValue().toString());
+                write(entry.getValue().toString());
                 writeGroupMark(false);
             }
             writeGroupMark(false);
         }
-    }
-
-    /** write directly to our Writer
-     *  TODO should check that this done at the right point, or even better, store
-     *  what is written here to render it in writeRtfContent. <-- it is for the color table
-     */
-    void write(String toWrite) throws IOException {
-        writer.write(toWrite);
-    }
-
-    /** write to our Writer using an RtfStringConverter */
-    void writeRtfString(String toWrite) throws IOException {
-        RtfStringConverter.getInstance().writeRtfString(writer, toWrite);
     }
 
     /**

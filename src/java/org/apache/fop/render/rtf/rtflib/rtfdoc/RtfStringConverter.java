@@ -48,8 +48,8 @@ public final class RtfStringConverter {
     /** List of characters to escape with corresponding replacement strings */
     static {
         SPECIAL_CHARS = new HashMap();
-        SPECIAL_CHARS.put(new Character('\t'), "tab");
-        SPECIAL_CHARS.put(new Character('\n'), "line");
+        SPECIAL_CHARS.put('\t', "tab");
+        SPECIAL_CHARS.put('\n', "line");
         SPECIAL_CHARS.put(new Character('\''), "rquote");
         SPECIAL_CHARS.put(new Character('\"'), "rdblquote");
         SPECIAL_CHARS.put(new Character('\\'), "\\");
@@ -67,20 +67,6 @@ public final class RtfStringConverter {
      */
     public static RtfStringConverter getInstance() {
         return INSTANCE;
-    }
-
-    /**
-     * Write given String to given Writer, converting characters as required by
-     * RTF spec
-     * @param w Writer
-     * @param str String to be written
-     * @throws IOException for I/O problems
-     */
-    public void writeRtfString(Writer w, String str) throws IOException {
-        if (str == null) {
-            return;
-        }
-        w.write(escape(str));
     }
 
     /**
@@ -133,5 +119,4 @@ public final class RtfStringConverter {
         }
         return sb.toString();
     }
-
 }

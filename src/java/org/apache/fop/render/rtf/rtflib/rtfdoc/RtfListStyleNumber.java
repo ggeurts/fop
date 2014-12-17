@@ -78,17 +78,17 @@ public class RtfListStyleNumber extends RtfListStyle {
      */
     public void writeLevelGroup(RtfElement element)
     throws IOException {
-        element.writeOneAttributeNS(
+        element.writeOneAttribute(
                 RtfListTable.LIST_START_AT, new Integer(1));
         element.attrib.set(RtfListTable.LIST_NUMBER_TYPE, 0);
 
         element.writeGroupMark(true);
-        element.writeOneAttributeNS(
+        element.writeOneAttribute(
                 RtfListTable.LIST_TEXT_FORM, "\\'03\\\'00. ;");
         element.writeGroupMark(false);
 
         element.writeGroupMark(true);
-        element.writeOneAttributeNS(
+        element.writeOneAttribute(
                 RtfListTable.LIST_NUM_POSITION, "\\'01;");
         element.writeGroupMark(false);
 

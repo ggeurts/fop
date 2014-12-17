@@ -54,7 +54,7 @@ public class RtfListStyleText extends RtfListStyle {
         // bulleted list
         item.writeControlWord("pnlvlblt");
         item.writeControlWord("ilvl0");
-        item.writeOneAttribute(RtfListTable.LIST_NUMBER, new Integer(item.getNumber()));
+        item.writeOneAttribute(RtfListTable.LIST_NUMBER, item.getNumber());
         item.writeOneAttribute("pnindent",
                 item.getParentList().attrib.getValue(RtfListTable.LIST_INDENT));
         item.writeControlWord("pnf1");
@@ -62,7 +62,7 @@ public class RtfListStyleText extends RtfListStyle {
         //item.writeControlWord("pndec");
         item.writeOneAttribute(RtfListTable.LIST_FONT_TYPE, "2");
         item.writeControlWord("pntxtb");
-        RtfStringConverter.getInstance().writeRtfString(item.writer, text);
+        item.write(text);
         item.writeGroupMark(false);
     }
 
@@ -101,13 +101,13 @@ public class RtfListStyleText extends RtfListStyle {
                 sCount = "0" + sCount;
             }
         }
-        element.writeOneAttributeNS(
-                RtfListTable.LIST_TEXT_FORM, "\\'" + sCount
-                    + RtfStringConverter.getInstance().escape(text));
+        element.writeControlWord(RtfListTable.LIST_TEXT_FORM);
+        element.writeControlWord("'" + sCount);
+        element.write(text);
         element.writeGroupMark(false);
 
         element.writeGroupMark(true);
-        element.writeOneAttributeNS(RtfListTable.LIST_NUM_POSITION, null);
+        element.writeOneAttribute(RtfListTable.LIST_NUM_POSITION, null);
         element.writeGroupMark(false);
 
         element.attrib.set(RtfListTable.LIST_FONT_TYPE, 2);

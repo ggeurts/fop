@@ -45,7 +45,7 @@ implements IRtfParagraphContainer, IRtfExternalGraphicContainer, IRtfTableContai
     private RtfExternalGraphic externalGraphic;
     private RtfTable table;
 
-    RtfAfterBeforeBase(RtfSection parent, Writer w, RtfAttributes attrs) throws IOException {
+    RtfAfterBeforeBase(RtfSection parent, RtfWriter w, RtfAttributes attrs) throws IOException {
         super((RtfContainer)parent, w, attrs);
     }
 

@@ -38,7 +38,7 @@ public class RtfAfter extends RtfAfterBeforeBase {
         FOOTER
     };
 
-    RtfAfter(RtfSection parent, Writer w, RtfAttributes attrs) throws IOException {
+    RtfAfter(RtfSection parent, RtfWriter w, RtfAttributes attrs) throws IOException {
         super(parent, w, attrs);
     }
 

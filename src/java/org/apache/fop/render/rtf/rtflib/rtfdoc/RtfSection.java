@@ -57,7 +57,7 @@ implements
     private RtfJforCmd jforCmd;
 
     /** Create an RTF container as a child of given container */
-    RtfSection(RtfDocumentArea parent, Writer w) throws IOException {
+    RtfSection(RtfDocumentArea parent, RtfWriter w) throws IOException {
         super(parent, w);
     }
 

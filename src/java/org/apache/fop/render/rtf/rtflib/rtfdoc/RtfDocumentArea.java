@@ -40,7 +40,7 @@ extends RtfContainer {
     private RtfSection currentSection;
 
     /** Create an RTF element as a child of given container */
-    RtfDocumentArea(RtfFile f, Writer w) throws IOException {
+    RtfDocumentArea(RtfFile f, RtfWriter w) throws IOException {
         super(f, w);
     }
 

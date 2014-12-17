@@ -38,7 +38,7 @@ import java.util.Iterator;
  */
 public abstract class RtfElement {
     /** Writer to be used */
-    protected final Writer writer;
+    protected final RtfWriter writer;
     /** parent element */
     protected final RtfContainer parent;
     /** attributes of the element */
@@ -49,12 +49,12 @@ public abstract class RtfElement {
     private static int idCounter;
 
     /** Create an RTF element as a child of given container */
-    RtfElement(RtfContainer parent, Writer w) throws IOException {
+    RtfElement(RtfContainer parent, RtfWriter w) throws IOException {
         this(parent, w, null);
     }
 
     /** Create an RTF element as a child of given container with given attributes */
-    RtfElement(RtfContainer parent, Writer w, RtfAttributes attr) throws IOException {
+    RtfElement(RtfContainer parent, RtfWriter w, RtfAttributes attr) throws IOException {
 
         id = idCounter++;
         this.parent = parent;
@@ -95,10 +95,20 @@ public abstract class RtfElement {
      * the RTF file itself (for easier debugging), not its content.
      * @throws IOException in case of an I/O problem
      */
-    public void newLine() throws IOException {
-        writer.write("\n");
+    public final void newLine() throws IOException {
+        writer.newLine();
     }
 
+    /**
+     * Write given String, converting characters as required by RTF spec
+     * @param str String to be written
+     * @throws IOException for I/O problems
+     */
+    protected final void write(String str)
+    throws IOException {
+        writer.write(str);
+    }
+    
     /**
      * Write an RTF control word to our Writer
      * @param word RTF control word to write
@@ -106,11 +116,20 @@ public abstract class RtfElement {
      */
     protected final void writeControlWord(String word)
     throws IOException {
-        writer.write('\\');
-        writer.write(word);
-        writer.write(' ');
+        writer.writeControlWord(word);
     }
 
+    /**
+     * Write an RTF control word and parameter to our Writer
+     * @param word RTF control word to write
+     * @param parameter RTF control word parameter value
+     * @throws IOException for I/O problems
+     */
+    final void writeControlWord(String word, int parameter)
+    throws IOException {
+        writer.writeControlWord(word, parameter);
+    }
+    
     /**
      * Write an RTF control word to our Writer, preceeded by a star '*'
      * meaning "ignore this if you don't know what it means"
@@ -119,31 +138,7 @@ public abstract class RtfElement {
      */
     protected final void writeStarControlWord(String word)
     throws IOException {
-        writer.write("\\*\\");
-        writer.write(word);
-        writer.write(' ');
-    }
-
-    /**
-     * Same as writeStarControlWord(String word), except with no space behind it
-     * @param word RTF control word to write
-     * @throws IOException for I/O problems
-     */
-    protected final void writeStarControlWordNS(String word)
-    throws IOException {
-        writer.write("\\*\\");
-        writer.write(word);
-    }
-
-    /**
-     * Write rtf control word without the space behind it
-     * @param word RTF control word to write
-     * @throws IOException for I/O problems
-     */
-    protected final void writeControlWordNS(String word)
-    throws IOException {
-        writer.write('\\');
-        writer.write(word);
+        writer.writeStarControlWord(word);
     }
 
     /**
@@ -173,7 +168,7 @@ public abstract class RtfElement {
      */
     protected final void writeGroupMark(boolean isStart)
     throws IOException {
-        writer.write(isStart ? "{" : "}");
+        writer.writeGroupMark(isStart);
     }
 
     /**
@@ -206,7 +201,7 @@ public abstract class RtfElement {
             }
         }
     }
-
+    
     /**
      * Write one attribute to our Writer
      * @param name name of attribute to write
@@ -215,40 +210,16 @@ public abstract class RtfElement {
      */
     protected void writeOneAttribute(String name, Object value)
     throws IOException {
-        String cw = name;
         if (value instanceof Integer) {
-            // attribute has integer value, must write control word + value
-            cw += value;
+            writeControlWord(name, (Integer) value);
         } else if (value instanceof String) {
-            cw += value;
+            writeControlWord(name + (String)value);
         } else if (value instanceof RtfAttributes) {
-            writeControlWord(cw);
+            writeControlWord(name);
             writeAttributes((RtfAttributes) value, null);
-            return;
+        } else {
+            writeControlWord(name);
         }
-        writeControlWord(cw);
-    }
-
-    /**
-     * Write one attribute to our Writer without a space
-     * @param name name of attribute to write
-     * @param value value of attribute to be written
-     * @throws IOException for I/O problems
-     */
-    protected void writeOneAttributeNS(String name, Object value)
-    throws IOException {
-        String cw = name;
-        if (value instanceof Integer) {
-            // attribute has integer value, must write control word + value
-            cw += value;
-        } else if (value instanceof String) {
-            cw += value;
-        } else if (value instanceof RtfAttributes) {
-            writeControlWord(cw);
-            writeAttributes((RtfAttributes) value, null);
-            return;
-        }
-        writeControlWordNS(cw);
     }
 
     /**
@@ -331,10 +302,10 @@ public abstract class RtfElement {
         writeControlWord("fs48");
 //        RtfStringConverter.getInstance().writeRtfString(m_writer,
 //                JForVersionInfo.getShortVersionInfo() + ": ");
-        RtfStringConverter.getInstance().writeRtfString(writer, ie.getClass().getName());
+        write(ie.getClass().getName());
 
         writeControlWord("fs20");
-        RtfStringConverter.getInstance().writeRtfString(writer, " " + ie.toString());
+        write(ie.toString());
 
         writeControlWord("par");
         writeGroupMark(false);

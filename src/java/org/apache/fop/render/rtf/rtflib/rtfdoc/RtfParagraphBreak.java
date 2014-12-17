@@ -29,7 +29,7 @@ public class RtfParagraphBreak extends RtfElement {
 
     private String controlWord = DEFAULT_PARAGRAPH;
 
-    RtfParagraphBreak(RtfContainer parent, Writer w)
+    RtfParagraphBreak(RtfContainer parent, RtfWriter w)
             throws IOException {
         super(parent, w);
     }

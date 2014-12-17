@@ -39,7 +39,7 @@ public class RtfBefore extends RtfAfterBeforeBase {
         HEADER
     };
 
-    RtfBefore(RtfSection parent, Writer w, RtfAttributes attrs) throws IOException {
+    RtfBefore(RtfSection parent, RtfWriter w, RtfAttributes attrs) throws IOException {
         super(parent, w, attrs);
     }
 

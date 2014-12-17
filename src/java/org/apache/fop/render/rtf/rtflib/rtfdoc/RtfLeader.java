@@ -130,7 +130,7 @@ public class RtfLeader extends RtfContainer {
     /** Tab width */
     public static final String LEADER_TAB_WIDTH = "tx";
 
-    RtfLeader(RtfContainer parent, Writer w, RtfAttributes attrs) throws IOException {
+    RtfLeader(RtfContainer parent, RtfWriter w, RtfAttributes attrs) throws IOException {
         super(parent, w);
         this.attrs = attrs;
     }
@@ -201,7 +201,7 @@ public class RtfLeader extends RtfContainer {
             // TODO for rule-thickness this has to be done better
 
             for (double d = (Integer.parseInt(tabwidth) / 560.0) * 7.5; d >= 1; d--) {
-                RtfStringConverter.getInstance().writeRtfString(writer, " ");
+                write(" ");
             }
 
             writeGroupMark(false);

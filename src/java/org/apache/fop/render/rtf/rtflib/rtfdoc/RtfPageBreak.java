@@ -37,7 +37,7 @@ import java.io.Writer;
 
 public class RtfPageBreak extends RtfElement {
     /** Create an RTF paragraph as a child of given container with default attributes */
-    RtfPageBreak(IRtfPageBreakContainer parent, Writer w) throws IOException {
+    RtfPageBreak(IRtfPageBreakContainer parent, RtfWriter w) throws IOException {
         super((RtfContainer)parent, w);
     }
 
