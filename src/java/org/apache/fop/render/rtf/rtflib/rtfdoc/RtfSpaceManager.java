@@ -56,7 +56,7 @@ public class RtfSpaceManager {
     public void stopUpdatingSpaceBefore() {
         for (Iterator it = blockAttributes.iterator(); it.hasNext();) {
             RtfSpaceSplitter splitter = (RtfSpaceSplitter) it.next();
-            if (splitter.isBeforeCadidateSet()) {
+            if (splitter.isBeforeCandidateSet()) {
                 splitter.stopUpdatingSpaceBefore();
             }
         }

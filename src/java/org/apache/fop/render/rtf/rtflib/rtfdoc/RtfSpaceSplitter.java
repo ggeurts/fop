@@ -40,7 +40,7 @@ public class RtfSpaceSplitter {
     /** Candidate for adding space-before. */
     private RtfAttributes spaceBeforeCandidate;
 
-    /** Candidate for adding space-before. */
+    /** Candidate for adding space-after. */
     private RtfAttributes spaceAfterCandidate;
 
     /**
@@ -109,12 +109,12 @@ public class RtfSpaceSplitter {
     }
 
     /** @return true, if candidate for space-before is set. */
-    public boolean isBeforeCadidateSet() {
+    public boolean isBeforeCandidateSet() {
         return spaceBeforeCandidate != null;
     }
 
     /** @return true, if candidate for space-after is set. */
-    public boolean isAfterCadidateSet() {
+    public boolean isAfterCandidateSet() {
         return spaceAfterCandidate != null;
     }
 
@@ -134,14 +134,14 @@ public class RtfSpaceSplitter {
      */
     public int flush() {
         int accumulatingSpace = 0;
-        if (!isBeforeCadidateSet()) {
+        if (!isBeforeCandidateSet()) {
             accumulatingSpace += spaceBefore;
         } else {
             spaceBeforeCandidate.addIntegerValue(spaceBefore,
                     RtfText.SPACE_BEFORE);
         }
 
-        if (!isAfterCadidateSet()) {
+        if (!isAfterCandidateSet()) {
             accumulatingSpace += spaceAfter;
         } else {
             spaceAfterCandidate.addIntegerValue(spaceAfter,
