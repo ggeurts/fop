@@ -21,6 +21,7 @@ package org.apache.fop.render.rtf.rtflib.rtfdoc;
 
 import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.ListIterator;
 
 /**
  * This class is responsible for saving space-before/space-after attributes
@@ -77,7 +78,8 @@ public class RtfSpaceManager {
 
     /**
      * Builds RtfSpaceSplitter on <code>attrs</code> and adds it to the
-     * block-level stack.
+     * block-level stack. Any attribute values that duplicate eeffective values
+     * of the parent block are removed.
      *
      * @param attrs  RtfAttribute to add
      * @return instance of RtfSpaceSplitter
@@ -85,9 +87,14 @@ public class RtfSpaceManager {
     public RtfSpaceSplitter pushRtfSpaceSplitter(RtfAttributes attrs) {
         RtfSpaceSplitter splitter;
         splitter = new RtfSpaceSplitter(attrs, accumulatedSpace);
+        
+        // Prevent nested block from writting duplicate attributes
+        removeEffectiveBlockAttributes(splitter.getCommonAttributes());
+
         // set accumulatedSpace to 0, because now accumulatedSpace used
         // in splitter
         accumulatedSpace = 0;
+       
         blockAttributes.addLast(splitter);
         return splitter;
     }
@@ -99,16 +106,20 @@ public class RtfSpaceManager {
         if (!blockAttributes.isEmpty()) {
             RtfSpaceSplitter splitter;
             splitter = (RtfSpaceSplitter) blockAttributes.removeLast();
+            
             accumulatedSpace += splitter.flush();
         }
     }
 
     /**
-     * Pushes inline attributes to inline-level stack.
+     * Pushes inline attributes to inline-level stack. Any attribute values
+     * that duplicate effective attribute values of the current block are
+     * removed.
      *
      * @param attrs attributes to add
      */
     public void pushInlineAttributes(RtfAttributes attrs) {
+        removeEffectiveBlockAttributes(attrs);
         inlineAttributes.addLast(attrs);
     }
 
@@ -127,6 +138,50 @@ public class RtfSpaceManager {
      * @return RtfAttributes from top of inline-level stack
      */
     public RtfAttributes getLastInlineAttribute() {
-        return (RtfAttributes) inlineAttributes.getLast();
+        return !inlineAttributes.isEmpty()
+                ? (RtfAttributes) inlineAttributes.getLast()
+                : null;
+    }
+
+    /**
+     * Removes attributes with values that would duplicate currently effective 
+     * rtf block-level attribute values.
+     * 
+     * @param attrs The attributes from which duplicates are to be removed.
+     */
+    private void removeEffectiveBlockAttributes(RtfAttributes attrs) {
+        RtfAttributes blockAttrs = getEffectiveBlockAttributes();
+        if (attrs == null || blockAttrs == null) return;
+        
+        for (Iterator nameIt = blockAttrs.nameIterator(); nameIt.hasNext();) {
+            String name = (String)nameIt.next();
+            Object value = attrs.getValue(name);
+            Object commonValue = blockAttrs.getValue(name);
+            if (commonValue == null ? value == null : commonValue.equals(value)) {
+                attrs.unset(name);
+            }
+        }
+    }
+    
+    private RtfAttributes getEffectiveBlockAttributes()
+    {
+        if (blockAttributes.isEmpty()) return null;
+        
+        RtfSpaceSplitter splitter = ((RtfSpaceSplitter)blockAttributes.getFirst());
+        RtfAttributes result = splitter.getCommonAttributes();
+        
+        if (blockAttributes.size() > 1) {
+            try {
+                result = (RtfAttributes)result.clone();
+                for(ListIterator it = blockAttributes.listIterator(1); it.hasNext();) {
+                    splitter = (RtfSpaceSplitter)it.next();
+                    result.set(splitter.getCommonAttributes());
+                }
+            } catch (CloneNotSupportedException e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+        return result;
     }
 }

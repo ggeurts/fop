@@ -328,8 +328,6 @@ final class TextAttributesConverter {
         } else {
             rtfAttr.set(RtfText.ATTR_ITALIC, 0);
         }
-
-
     }
 
 
@@ -346,13 +344,11 @@ final class TextAttributesConverter {
         }
     }
 
-
-
     private static void attrTextDecoration(CommonTextDecoration textDecoration,
                 RtfAttributes rtfAttr) {
         if (textDecoration == null) {
-            rtfAttr.set(RtfText.ATTR_UNDERLINE, 0);
-            rtfAttr.set(RtfText.ATTR_STRIKETHROUGH, 0);
+            // rtfAttr.set(RtfText.ATTR_UNDERLINE, 0);
+            // rtfAttr.set(RtfText.ATTR_STRIKETHROUGH, 0);
             return;
         }
 
@@ -370,12 +366,17 @@ final class TextAttributesConverter {
     }
 
     private static void attrBlockMargin(CommonMarginBlock cmb, FOPRtfAttributes rtfAttr) {
-        rtfAttr.setTwips(RtfText.SPACE_BEFORE,
-                cmb.spaceBefore.getOptimum(null).getLength());
-        rtfAttr.setTwips(RtfText.SPACE_AFTER,
-                cmb.spaceAfter.getOptimum(null).getLength());
-        rtfAttr.setTwips(RtfText.LEFT_INDENT_BODY, cmb.startIndent);
-        rtfAttr.setTwips(RtfText.RIGHT_INDENT_BODY, cmb.endIndent);
+        attrMargin(RtfText.SPACE_BEFORE, cmb.spaceBefore.getOptimum(null).getLength(), rtfAttr);
+        attrMargin(RtfText.SPACE_AFTER, cmb.spaceAfter.getOptimum(null).getLength(), rtfAttr);
+        attrMargin(RtfText.LEFT_INDENT_BODY, cmb.startIndent, rtfAttr);
+        attrMargin(RtfText.RIGHT_INDENT_BODY, cmb.endIndent, rtfAttr);
+    }
+    
+    private static void attrMargin(String attrName, Length margin, FOPRtfAttributes rtfAttr)
+    {
+        if (margin.getValue() != 0) {
+            rtfAttr.setTwips(attrName, margin);
+        }
     }
 
 

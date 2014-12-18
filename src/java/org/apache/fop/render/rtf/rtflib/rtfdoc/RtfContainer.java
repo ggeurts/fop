@@ -43,7 +43,6 @@ import org.apache.fop.render.rtf.rtflib.exceptions.RtfStructureException;
 public class RtfContainer extends RtfElement {
     private LinkedList children;  // 'final' removed by Boris Poudérous on 07/22/2002
     private RtfOptions options = new RtfOptions();
-    private RtfElement lastChild;
 
     /** Create an RTF container as a child of given container */
     RtfContainer(RtfContainer parent, RtfWriter w) throws IOException {
@@ -95,14 +94,13 @@ public class RtfContainer extends RtfElement {
         }
 
         children.add(e);
-        lastChild = e;
     }
 
     /**
-     * @return a copy of our children's list
+     * @return our children's list
      */
     public List getChildren() {
-        return (List)children.clone();
+        return children;
     }
 
     /**
@@ -134,21 +132,6 @@ public class RtfContainer extends RtfElement {
      */
     public int findChildren(RtfElement aChild) {
         return findChildren(aChild, 0);
-    }
-
-    /**
-     * Add by Boris Poudérous on 07/22/2002
-     * Set the children list
-     * @param list list of child objects
-     * @return true if process succeeded
-     */
-    public boolean setChildren(List list) {
-      if (list instanceof LinkedList) {
-          this.children = (LinkedList) list;
-          return true;
-        }
-
-      return false;
     }
 
     /**

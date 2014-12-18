@@ -59,11 +59,4 @@ public interface IRtfTextContainer {
      * @throws IOException for I/O problems
      */
     void newLineBreak() throws IOException;
-
-    /**
-     * Text containers usually provide default attributes for all texts that they contain.
-     * @return a copy of the container's attributes.
-     * @throws FOPException if attributes cannot be obtained
-     */
-    RtfAttributes getTextContainerAttributes() throws FOPException;
 }

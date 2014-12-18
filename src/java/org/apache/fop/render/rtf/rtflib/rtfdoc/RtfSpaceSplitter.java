@@ -50,7 +50,7 @@ public class RtfSpaceSplitter {
      * @param previousSpace  integer, representing accumulated spacing
      */
     public RtfSpaceSplitter(RtfAttributes attrs, int previousSpace) {
-        commonAttributes = attrs;
+        commonAttributes = attrs == null ? new RtfAttributes() : attrs;
         updatingSpaceBefore = true;
         spaceBeforeCandidate = null;
         spaceAfterCandidate = null;
@@ -68,12 +68,8 @@ public class RtfSpaceSplitter {
      */
     public int split(String key) {
         Integer i = (Integer) commonAttributes.getValue(key);
-        if (i == null) {
-            i = new Integer(0);
-        }
-
         commonAttributes.unset(key);
-        return i.intValue();
+        return i == null ? 0 : i.intValue();
     }
 
     /** @return attributes, applicable to whole block. */
@@ -136,14 +132,14 @@ public class RtfSpaceSplitter {
         int accumulatingSpace = 0;
         if (!isBeforeCandidateSet()) {
             accumulatingSpace += spaceBefore;
-        } else {
+        } else if (spaceBefore != 0) {
             spaceBeforeCandidate.addIntegerValue(spaceBefore,
                     RtfText.SPACE_BEFORE);
         }
 
         if (!isAfterCandidateSet()) {
             accumulatingSpace += spaceAfter;
-        } else {
+        } else if (spaceAfter != 0) {
             spaceAfterCandidate.addIntegerValue(spaceAfter,
                             RtfText.SPACE_AFTER);
         }

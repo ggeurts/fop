@@ -21,11 +21,9 @@ package org.apache.fop.render.rtf.rtflib.rtfdoc;
 
 // Java
 import java.io.IOException;
-import java.io.Writer;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
-import java.util.Stack;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -116,11 +114,11 @@ public class RtfTextrun extends RtfContainer {
          */
         protected void writeRtfContent() throws IOException {
             writeGroupMark(false);
-            boolean bHasTableCellParent = this.getParentOfClass(RtfTableCell.class) != null;
 
             //Unknown behavior when a table starts a new section,
             //Word may crash
             if (breakType != BREAK_NONE) {
+                boolean bHasTableCellParent = this.getParentOfClass(RtfTableCell.class) != null;
                 if (!bHasTableCellParent) {
                     writeControlWord("sect");
                     /* The following modifiers don't seem to appear in the right place */
@@ -166,17 +164,19 @@ public class RtfTextrun extends RtfContainer {
      * @throws IOException for I/O problems
      */
     private void addCloseGroupMark(int breakType) throws IOException {
+        if (breakType == BREAK_NONE)
+        {
+            List children = getChildren();
+            if (children.isEmpty()) return;
+            if (children.get(children.size() - 1) instanceof RtfOpenGroupMark)
+            {
+                // Remove empty group
+                children.remove(children.size() - 1);
+                return;
+            }
+        }
+        
         RtfCloseGroupMark r = new RtfCloseGroupMark(this, writer, breakType);
-    }
-
-    /**
-     * Adds instance of <code>CloseGroupMark</code> as a child, but without a break option.
-     * Inline attributes do not need that for example
-     *
-     * @throws IOException for I/O problems
-     */
-    private void addCloseGroupMark() throws IOException {
-        RtfCloseGroupMark r = new RtfCloseGroupMark(this, writer, BREAK_NONE);
     }
 
     /**
@@ -211,6 +211,7 @@ public class RtfTextrun extends RtfContainer {
      * @throws IOException for I/O problems
      */
     public void pushInlineAttributes(RtfAttributes attrs) throws IOException {
+        
         rtfSpaceManager.pushInlineAttributes(attrs);
         addOpenGroupMark(attrs);
     }
@@ -231,7 +232,7 @@ public class RtfTextrun extends RtfContainer {
      */
     public void popInlineAttributes() throws IOException {
         rtfSpaceManager.popInlineAttributes();
-        addCloseGroupMark();
+        addCloseGroupMark(BREAK_NONE);
     }
 
     /**
@@ -270,31 +271,40 @@ public class RtfTextrun extends RtfContainer {
      * @return The paragraph break element
      */
     public RtfParagraphBreak addParagraphBreak() throws IOException {
-        // get copy of children list
         List children = getChildren();
-        Stack tmp = new Stack();
-        RtfParagraphBreak par = null;
-
-        // delete all previous CloseGroupMark
-        int deletedCloseGroupCount = 0;
-
+        
+        // Don't add paragraph break at start of textrun
+        if (children.size() == 0) return null;
+        
         ListIterator lit = children.listIterator(children.size());
-        while (lit.hasPrevious()
-                && (lit.previous() instanceof RtfCloseGroupMark)) {
-            tmp.push(Integer.valueOf(((RtfCloseGroupMark)lit.next()).getBreakType()));
-            lit.remove();
-            deletedCloseGroupCount++;
-        }
-
-        if (children.size() != 0) {
-            // add paragraph break and restore all deleted close group marks
-            setChildren(children);
-            par = new RtfParagraphBreak(this, writer);
-            for (int i = 0; i < deletedCloseGroupCount; i++) {
-                addCloseGroupMark(((Integer)tmp.pop()).intValue());
+        int markCount = 0;
+        while (lit.hasPrevious()) {
+            Object child = lit.previous();
+            if (!(child instanceof RtfCloseGroupMark)) {
+                if (child instanceof RtfParagraphBreak) {
+                    // Don't add two consecutive paragraph breaks
+                    return (RtfParagraphBreak) child;
+                }
+                break;
             }
+            markCount++;
         }
-        return par;
+        
+        // Add new paragraph break before the close marks
+        lit.next();
+        RtfCloseGroupMark[] marks = new RtfCloseGroupMark[markCount];
+        for (int i = 0; i < markCount; i++)
+        {
+            marks[i] = (RtfCloseGroupMark)lit.next();
+            lit.remove();
+        }
+        RtfParagraphBreak result = new RtfParagraphBreak(this, writer);
+        for (int i = 0; i < markCount; i++)
+        {
+            addChild(marks[i]);
+        }
+        
+        return result;
     }
 
     /**
@@ -394,49 +404,14 @@ public class RtfTextrun extends RtfContainer {
      * @throws IOException for I/O problems
      */
     protected void writeRtfContent() throws IOException {
-        /**
-         *TODO: The textrun's children are iterated twice:
-         * 1. To determine the last RtfParagraphBreak
-         * 2. To write the children
-         * Maybe this can be done more efficient.
-         */
-
+        tryRemoveLastParagraphBreak();
+        if (getChildCount() == 0) return;
+        
+        int groupLevel = 0;
+        
         boolean bHasTableCellParent
             = this.getParentOfClass(RtfTableCell.class) != null;
         RtfAttributes attrBlockLevel = new RtfAttributes();
-
-        //determine, if this RtfTextrun is the last child of its parent
-        boolean bLast = false;
-        for (Iterator it = parent.getChildren().iterator(); it.hasNext();) {
-            if (it.next() == this) {
-                bLast = !it.hasNext();
-                break;
-            }
-        }
-
-        //get last RtfParagraphBreak, which is not followed by any visible child
-        RtfParagraphBreak lastParagraphBreak = null;
-        if (bLast) {
-            RtfElement aBefore = null;
-            for (Iterator it = getChildren().iterator(); it.hasNext();) {
-                final RtfElement e = (RtfElement)it.next();
-                if (e instanceof RtfParagraphBreak) {
-                    //If the element before was a paragraph break or a bookmark
-                    //they will be hidden and are therefore not considered as visible
-                    if (!(aBefore instanceof RtfParagraphBreak)
-                     && !(aBefore instanceof RtfBookmark)) {
-                      lastParagraphBreak = (RtfParagraphBreak)e;
-                    }
-                } else {
-                    if (!(e instanceof RtfOpenGroupMark)
-                            && !(e instanceof RtfCloseGroupMark)
-                            && e.isEmpty()) {
-                        lastParagraphBreak = null;
-                    }
-                }
-                aBefore = e;
-            }
-        }
 
         //may contain for example \intbl
         writeAttributes(attrib, null);
@@ -446,9 +421,6 @@ public class RtfTextrun extends RtfContainer {
         }
 
         //write all children
-        boolean bPrevPar = false;
-        boolean bBookmark = false;
-        boolean bFirst = true;
         for (Iterator it = getChildren().iterator(); it.hasNext();) {
             final RtfElement e = (RtfElement)it.next();
             final boolean bRtfParagraphBreak = (e instanceof RtfParagraphBreak);
@@ -456,49 +428,20 @@ public class RtfTextrun extends RtfContainer {
             if (bHasTableCellParent) {
                 attrBlockLevel.set(e.getRtfAttributes());
             }
-
-
-            /**
-             * -Write RtfParagraphBreak only, if the previous visible child
-             * was't also a RtfParagraphBreak.
-             * -Write RtfParagraphBreak only, if it is not the first visible
-             * child.
-             * -If the RtfTextrun is the last child of its parent, write a
-             * RtfParagraphBreak only, if it is not the last child.
-             * -If the RtfParagraphBreak can not be hidden (e.g. a table cell requires it)
-             * it is also written
-             */
-            boolean bHide = false;
-            bHide = bRtfParagraphBreak;
-            bHide = bHide
-                && (bPrevPar
-                    || bFirst
-                    || (bSuppressLastPar && bLast && lastParagraphBreak != null
-                        && e == lastParagraphBreak)
-                    || bBookmark)
-                && ((RtfParagraphBreak)e).canHide();
-
-            if (!bHide) {
-                newLine();
-                e.writeRtf();
-
-                if (rtfListItem != null && e instanceof RtfParagraphBreak) {
-                    rtfListItem.getRtfListStyle().writeParagraphPrefix(this);
+            
+            if (e instanceof RtfOpenGroupMark) {
+                if (groupLevel++ == 0) {
+                    newLine();
                 }
+            } else if (e instanceof RtfCloseGroupMark) {
+                groupLevel--;
             }
 
-            if (e instanceof RtfParagraphBreak) {
-                bPrevPar = true;
-            } else if (e instanceof RtfBookmark)  {
-                bBookmark = true;
-            } else if (e instanceof RtfCloseGroupMark) {
-                //do nothing
-            } else if (e instanceof RtfOpenGroupMark) {
-                //do nothing
-            } else {
-                bPrevPar = bPrevPar && e.isEmpty();
-                bFirst = bFirst && e.isEmpty();
-                bBookmark = false;
+            e.writeRtf();
+
+            if (rtfListItem != null && bRtfParagraphBreak) {
+                // May cause bug where list item symbol is written multiple times...
+                rtfListItem.getRtfListStyle().writeParagraphPrefix(this);
             }
         } //for (Iterator it = ...)
 
@@ -506,7 +449,6 @@ public class RtfTextrun extends RtfContainer {
         if (bHasTableCellParent) {
             writeAttributes(attrBlockLevel, null);
         }
-
     }
 
     /**
@@ -525,6 +467,44 @@ public class RtfTextrun extends RtfContainer {
      */
     public RtfListItem getRtfListItem() {
         return rtfListItem;
+    }
+    
+    private void tryRemoveLastParagraphBreak()
+    {
+        if (!isLastSibling() || !bSuppressLastPar) return;
+
+        // Iterate children in reverse order
+        List children = getChildren();
+        ListIterator lit = children.listIterator(children.size());
+        
+        while (lit.hasPrevious()) {
+            RtfElement element = (RtfElement)lit.previous();
+            if (element instanceof RtfParagraphBreak
+                    && ((RtfParagraphBreak)element).canHide()) {
+                lit.remove();
+            }
+            
+            if (!isInvisibleElement(element)) break;
+        }
+    }
+
+    /**
+     * Indicates whether this text run is the last child of its parent.
+     * @return Indication whether this text run is the last child of its parent.
+     */
+    private boolean isLastSibling()
+    {
+        //determine, if this RtfTextrun is the last child of its parent
+        List siblings = parent.getChildren();
+        return !siblings.isEmpty() && siblings.get(siblings.size() - 1) == this;
+    }
+    
+    private static boolean isInvisibleElement(RtfElement element)
+    {
+        return element instanceof RtfOpenGroupMark
+                || element instanceof RtfCloseGroupMark
+                || element instanceof RtfBookmark
+                || element.isEmpty();
     }
 }
 

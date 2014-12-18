@@ -93,22 +93,6 @@ implements IRtfTextContainer, IRtfPageBreakContainer, IRtfHyperLinkContainer,
     }
 
     /**
-     * IRtfTextContainer requirement: return a copy of our attributes
-     * @return a copy of this paragraphs attributes
-     * @throws FOPException if attributes cannot be cloned
-     */
-    public RtfAttributes getTextContainerAttributes() throws FOPException {
-        if (attrib == null) {
-            return null;
-        }
-        try {
-            return (RtfAttributes)this.attrib.clone();
-        } catch (CloneNotSupportedException e) {
-            throw new FOPException(e);
-        }
-    }
-
-    /**
      * Overridden to write our attributes before our content
      * @throws IOException for I/O problems
      */
