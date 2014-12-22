@@ -27,7 +27,6 @@ package org.apache.fop.render.rtf.rtflib.rtfdoc;
  */
 
 import java.io.IOException;
-import java.io.Writer;
 
 /** RtfContainer that encloses footers */
 public class RtfAfter extends RtfAfterBeforeBase {
@@ -38,15 +37,12 @@ public class RtfAfter extends RtfAfterBeforeBase {
         FOOTER
     };
 
-    RtfAfter(RtfSection parent, RtfWriter w, RtfAttributes attrs) throws IOException {
-        super(parent, w, attrs);
+    RtfAfter(RtfSection parent, RtfAttributes attrs) throws IOException {
+        super(parent, attrs);
     }
 
-    /**
-     *
-     * @throws IOException for I/O problems
-     */
-    protected void writeMyAttributes() throws IOException {
-        writeAttributes(attrib, FOOTER_ATTR);
+    /** {@inheritDoc} */
+    protected void writeMyAttributes(RtfWriter w) throws IOException {
+        w.writeAttributes(attrib, FOOTER_ATTR);
     }
 }

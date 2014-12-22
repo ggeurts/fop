@@ -27,7 +27,6 @@ package org.apache.fop.render.rtf.rtflib.rtfdoc;
  */
 
 import java.io.IOException;
-import java.io.Writer;
 
 /**
  * <p>Common code for RtfAfter and RtfBefore.</p>
@@ -45,25 +44,25 @@ implements IRtfParagraphContainer, IRtfExternalGraphicContainer, IRtfTableContai
     private RtfExternalGraphic externalGraphic;
     private RtfTable table;
 
-    RtfAfterBeforeBase(RtfSection parent, RtfWriter w, RtfAttributes attrs) throws IOException {
-        super((RtfContainer)parent, w, attrs);
+    RtfAfterBeforeBase(RtfSection parent, RtfAttributes attrs) throws IOException {
+        super((RtfContainer)parent, attrs);
     }
 
     public RtfParagraph newParagraph() throws IOException {
         closeAll();
-        para = new RtfParagraph(this, writer);
+        para = new RtfParagraph(this);
         return para;
     }
 
     public RtfParagraph newParagraph(RtfAttributes attrs) throws IOException {
         closeAll();
-        para = new RtfParagraph(this, writer, attrs);
+        para = new RtfParagraph(this, attrs);
         return para;
     }
 
     public RtfExternalGraphic newImage() throws IOException {
         closeAll();
-        externalGraphic = new RtfExternalGraphic(this, writer);
+        externalGraphic = new RtfExternalGraphic(this);
         return externalGraphic;
     }
 
@@ -85,20 +84,18 @@ implements IRtfParagraphContainer, IRtfExternalGraphicContainer, IRtfTableContai
         }
     }
 
-    protected void writeRtfPrefix() throws IOException {
-        writeGroupMark(true);
-        writeMyAttributes();
+    /** {@inheritDoc} */
+    protected void writeRtfPrefix(RtfWriter w) throws IOException {
+        w.writeGroupMark(true);
+        writeMyAttributes(w);
     }
 
     /** must be implemented to write the header or footer attributes */
-    protected abstract void writeMyAttributes() throws IOException;
+    protected abstract void writeMyAttributes(RtfWriter w) throws IOException;
 
-    protected void writeRtfSuffix() throws IOException {
-        writeGroupMark(false);
-    }
-
-    public RtfAttributes getAttributes() {
-        return attrib;
+    /** {@inheritDoc} */
+    protected void writeRtfSuffix(RtfWriter w) throws IOException {
+        w.writeGroupMark(false);
     }
 
     public void closeAll() throws IOException {
@@ -113,19 +110,19 @@ implements IRtfParagraphContainer, IRtfExternalGraphicContainer, IRtfTableContai
      */
     public RtfTable newTable(RtfAttributes attrs, ITableColumnsInfo tc) throws IOException {
         closeAll();
-        table = new RtfTable(this, writer, attrs, tc);
+        table = new RtfTable(this, attrs, tc);
         return table;
     }
 
     /** close current table if any and start a new one  */
     public RtfTable newTable(ITableColumnsInfo tc) throws IOException {
         closeAll();
-        table = new RtfTable(this, writer, tc);
+        table = new RtfTable(this, tc);
         return table;
     }
 
     public RtfTextrun getTextrun()
     throws IOException {
-        return RtfTextrun.getTextrun(this, writer, null);
+        return RtfTextrun.getTextrun(this, null);
     }
 }

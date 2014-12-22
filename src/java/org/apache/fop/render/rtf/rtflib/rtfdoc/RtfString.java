@@ -38,9 +38,9 @@ import java.io.Writer;
 public class RtfString extends RtfElement {
     private String text = "";
 
-    RtfString(RtfContainer parent, RtfWriter w, String s)
+    RtfString(RtfContainer parent, String s)
     throws IOException {
-        super(parent, w);
+        super(parent);
 
         text = s;
     }
@@ -52,12 +52,9 @@ public class RtfString extends RtfElement {
         return text.trim().equals("");
     }
 
-    /**
-    * write RTF code of all our children
-    * @throws IOException for I/O problems
-    */
-    protected void writeRtfContent() throws IOException {
-        write(text);
+    /** {@inheritDoc} */
+    protected void writeRtfContent(RtfWriter w) throws IOException {
+        w.write(text);
     }
 
     /** @return the text */

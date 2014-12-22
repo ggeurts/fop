@@ -27,7 +27,6 @@ package org.apache.fop.render.rtf.rtflib.rtfdoc;
  */
 
 import java.io.IOException;
-import java.io.Writer;
 
 /**
  * <p>Page number citation container.</p>
@@ -52,29 +51,26 @@ public class RtfPageNumberCitation extends RtfContainer {
     private String id;
 
     /** Create an RTF page number citation as a child of given container with default attributes */
-    RtfPageNumberCitation(RtfContainer parent, RtfWriter w, String id)
+    RtfPageNumberCitation(RtfContainer parent, String id)
             throws IOException {
-        super(parent, w);
+        super(parent);
         this.id = id;
     }
 
     /** Create an RTF page number citation as a child of given
      *    paragraph, copying its attributes */
-    RtfPageNumberCitation(RtfParagraph parent, RtfWriter w, String id)
+    RtfPageNumberCitation(RtfParagraph parent, String id)
             throws IOException {
         // add the attributes ant text attributes of the parent paragraph
-        super((RtfContainer)parent, w, parent.attrib);
+        super((RtfContainer)parent, parent.attrib);
         if (parent.getTextAttributes() != null) {
             attrib.set(parent.getTextAttributes());
         }
         this.id = id;
     }
 
-    /**
-     * Write the content
-     * @throws IOException for I/O problems
-     */
-    protected void writeRtfContent() throws IOException {
+    /** {@inheritDoc} */
+    protected void writeRtfContent(RtfWriter w) throws IOException {
         // If we have a valid ID
         if (isValid()) {
             // Build page reference field
@@ -87,16 +83,16 @@ public class RtfPageNumberCitation extends RtfContainer {
             id = null;
 
             // Write RTF content
-            writeGroupMark(true);
-            writeControlWord(RTF_FIELD);
-            writeGroupMark(true);
-            writeAttributes(attrib, RtfText.ATTR_NAMES); // Added by Boris Poudérous
-            writeStarControlWord(pageRef);
-            writeGroupMark(false);
-            writeGroupMark(true);
-            writeControlWord(RTF_FIELD_RESULT + '#'); //To see where the page-number would be
-            writeGroupMark(false);
-            writeGroupMark(false);
+            w.writeGroupMark(true);
+            w.writeControlWord(RTF_FIELD);
+            w.writeGroupMark(true);
+            w.writeAttributes(attrib, RtfText.ATTR_NAMES); // Added by Boris Poudérous
+            w.writeStarControlWord(pageRef);
+            w.writeGroupMark(false);
+            w.writeGroupMark(true);
+            w.writeControlWord(RTF_FIELD_RESULT + '#'); //To see where the page-number would be
+            w.writeGroupMark(false);
+            w.writeGroupMark(false);
         }
     }
 

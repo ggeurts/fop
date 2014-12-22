@@ -20,7 +20,6 @@
 package org.apache.fop.render.rtf.rtflib.rtfdoc;
 
 import java.io.IOException;
-import java.io.Writer;
 import java.util.Iterator;
 
 /**
@@ -130,13 +129,13 @@ public class RtfLeader extends RtfContainer {
     /** Tab width */
     public static final String LEADER_TAB_WIDTH = "tx";
 
-    RtfLeader(RtfContainer parent, RtfWriter w, RtfAttributes attrs) throws IOException {
-        super(parent, w);
+    RtfLeader(RtfContainer parent, RtfAttributes attrs) throws IOException {
+        super(parent);
         this.attrs = attrs;
     }
 
     /** {@inheritDoc} */
-    protected void writeRtfContent() throws IOException {
+    protected void writeRtfContent(RtfWriter w) throws IOException {
 
         int thickness = LEADER_STANDARD_WIDTH;
         String tablead = null;
@@ -166,34 +165,34 @@ public class RtfLeader extends RtfContainer {
         // comfortable, specially for the table of content
         if (attrs.getValue(LEADER_USETAB) != null) {
             attrs.unset(LEADER_USETAB);
-            writeControlWord(LEADER_TAB_RIGHT);
+            w.writeControlWord(LEADER_TAB_RIGHT);
 
             if (tablead != null) {
-                writeControlWord(tablead);
+                w.writeControlWord(tablead);
             }
-            writeControlWord(LEADER_TAB_WIDTH + tabwidth);
+            w.writeControlWord(LEADER_TAB_WIDTH + tabwidth);
 
-            writeGroupMark(true);
+            w.writeGroupMark(true);
 
-            writeControlWord(LEADER_IGNORE_STYLE);
-            writeAttributes(attrs, null);
-            writeControlWord(LEADER_EXPAND);
-            writeControlWord(LEADER_TAB_VALUE);
+            w.writeControlWord(LEADER_IGNORE_STYLE);
+            w.writeAttributes(attrs, null);
+            w.writeControlWord(LEADER_EXPAND);
+            w.writeControlWord(LEADER_TAB_VALUE);
 
-            writeGroupMark(false);
+            w.writeGroupMark(false);
 
         } else { // Using white spaces with different underline formats
-            writeControlWord(LEADER_IGNORE_STYLE);
-            writeControlWord(LEADER_ZERO_WIDTH);
-            writeGroupMark(true);
+            w.writeControlWord(LEADER_IGNORE_STYLE);
+            w.writeControlWord(LEADER_ZERO_WIDTH);
+            w.writeGroupMark(true);
 
-            writeControlWord(LEADER_RULE_THICKNESS + thickness);
+            w.writeControlWord(LEADER_RULE_THICKNESS + thickness);
 
-            writeControlWord(LEADER_UP);
+            w.writeControlWord(LEADER_UP);
 
-            super.writeAttributes(attrs, null);
+            w.writeAttributes(attrs, null);
             if (tablead != null) {
-                writeControlWord(tablead);
+                w.writeControlWord(tablead);
             }
 
             // Calculation for the necessary amount of white spaces
@@ -201,11 +200,11 @@ public class RtfLeader extends RtfContainer {
             // TODO for rule-thickness this has to be done better
 
             for (double d = (Integer.parseInt(tabwidth) / 560.0) * 7.5; d >= 1; d--) {
-                write(" ");
+                w.write(' ');
             }
 
-            writeGroupMark(false);
-            writeControlWord(LEADER_ZERO_WIDTH);
+            w.writeGroupMark(false);
+            w.writeControlWord(LEADER_ZERO_WIDTH);
         }
     }
 

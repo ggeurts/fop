@@ -27,7 +27,6 @@ package org.apache.fop.render.rtf.rtflib.rtfdoc;
  */
 
 import java.io.IOException;
-import java.io.Writer;
 
 /**
  * <p>The RTF document area, container for RtfSection objects.</p>
@@ -39,9 +38,13 @@ public class RtfDocumentArea
 extends RtfContainer {
     private RtfSection currentSection;
 
+    /**RtfPage attributes*/
+    /** constant for enabling left and right footers */
+    public static final String FACING_PAGES = "facingp";
+    
     /** Create an RTF element as a child of given container */
-    RtfDocumentArea(RtfFile f, RtfWriter w) throws IOException {
-        super(f, w);
+    RtfDocumentArea(RtfFile f) throws IOException {
+        super(f);
     }
 
     /**
@@ -53,7 +56,16 @@ extends RtfContainer {
         if (currentSection != null) {
             currentSection.close();
         }
-        currentSection = new RtfSection(this, writer);
+        currentSection = new RtfSection(this);
         return currentSection;
+    }
+    
+    /**
+     * Indicates whether facing pages are supported.
+     * @return Indication whether rtf /facingp attribute has been set.
+     */
+    public boolean hasFacingPages()
+    {
+        return attrib.isSet(FACING_PAGES);
     }
 }

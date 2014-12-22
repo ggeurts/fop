@@ -27,7 +27,6 @@ package org.apache.fop.render.rtf.rtflib.rtfdoc;
  */
 
 import java.io.IOException;
-import java.io.Writer;
 import java.util.Iterator;
 
 import org.apache.fop.apps.FOPException;
@@ -48,14 +47,14 @@ public class RtfTableRow extends RtfContainer implements ITableAttributes {
 
 
     /** Create an RTF element as a child of given container */
-    RtfTableRow(RtfTable parent, RtfWriter w, int idNum) throws IOException {
-        super(parent, w);
+    RtfTableRow(RtfTable parent, int idNum) throws IOException {
+        super(parent);
         id = idNum;
     }
 
     /** Create an RTF element as a child of given container */
-    RtfTableRow(RtfTable parent, RtfWriter w, RtfAttributes attrs, int idNum) throws IOException {
-        super(parent, w, attrs);
+    RtfTableRow(RtfTable parent, RtfAttributes attrs, int idNum) throws IOException {
+        super(parent, attrs);
         id = idNum;
     }
 
@@ -67,7 +66,7 @@ public class RtfTableRow extends RtfContainer implements ITableAttributes {
      */
     public RtfTableCell newTableCell(int cellWidth) throws IOException {
         highestCell++;
-        cell = new RtfTableCell(this, writer, cellWidth, highestCell);
+        cell = new RtfTableCell(this, cellWidth, highestCell);
         return cell;
     }
 
@@ -80,7 +79,7 @@ public class RtfTableRow extends RtfContainer implements ITableAttributes {
      */
     public RtfTableCell newTableCell(int cellWidth, RtfAttributes attrs) throws IOException {
         highestCell++;
-        cell = new RtfTableCell(this, writer, cellWidth, attrs, highestCell);
+        cell = new RtfTableCell(this, cellWidth, attrs, highestCell);
         return cell;
     }
 
@@ -96,7 +95,7 @@ public class RtfTableRow extends RtfContainer implements ITableAttributes {
     public RtfTableCell newTableCellMergedVertically(int cellWidth,
            RtfAttributes attrs) throws IOException {
         highestCell++;
-        cell = new RtfTableCell(this, writer, cellWidth, attrs, highestCell);
+        cell = new RtfTableCell(this, cellWidth, attrs, highestCell);
         cell.setVMerge(RtfTableCell.MERGE_WITH_PREVIOUS);
         return cell;
     }
@@ -124,66 +123,64 @@ public class RtfTableRow extends RtfContainer implements ITableAttributes {
             }
         }
 
-        cell = new RtfTableCell(this, writer, cellWidth, wAttributes, highestCell);
+        cell = new RtfTableCell(this, cellWidth, wAttributes, highestCell);
         cell.setHMerge(RtfTableCell.MERGE_WITH_PREVIOUS);
         return cell;
     }
 
-    /**
-     * @throws IOException for I/O problems
-     */
-    protected void writeRtfPrefix() throws IOException {
-        newLine();
-        writeGroupMark(true);
+    /** {@inheritDoc} */
+    protected void writeRtfPrefix(RtfWriter w) throws IOException {
+        w.newLine();
+        w.writeGroupMark(true);
     }
 
     /**
      * Overridden to write trowd and cell definitions before writing our cells
-     * @throws IOException for I/O problems
+     * {@inheritDoc}
      */
-    protected void writeRtfContent() throws IOException {
+    protected void writeRtfContent(RtfWriter w) throws IOException {
         if (getTable().isNestedTable()) {
             //nested table
-            writeControlWord("intbl");
+            w.writeControlWord("intbl");
             //itap is the depth (level) of the current nested table
-            writeControlWord("itap" + getTable().getNestedTableDepth());
+            w.writeControlWord("itap" + getTable().getNestedTableDepth());
         } else {
             //normal (not nested) table
-            writeRowAndCellsDefintions();
+            writeRowAndCellsDefintions(w);
         }
         // now children can write themselves, we have the correct RTF prefix code
-        super.writeRtfContent();
+        super.writeRtfContent(w);
     }
 
     /**
-     *
+     * @param w The {@link RtfWriter} to write to.
      * @throws IOException In case of a IO-problem
      */
-    public void writeRowAndCellsDefintions() throws IOException {
+    public void writeRowAndCellsDefintions(RtfWriter w) throws IOException {
         // render the row and cells definitions
-        writeControlWord("trowd");
+        w.writeControlWord("trowd");
 
         if (!getTable().isNestedTable()) {
-            writeControlWord("itap0");
+            w.writeControlWord("itap0");
         }
 
         //check for keep-together
         if (attrib.isSet(ITableAttributes.ROW_KEEP_TOGETHER)) {
-            writeControlWord(ROW_KEEP_TOGETHER);
+            w.writeControlWord(ROW_KEEP_TOGETHER);
         }
 
-        writePaddingAttributes();
+        writePaddingAttributes(w);
 
         final RtfTable parentTable = (RtfTable) parent;
         adjustBorderProperties(parentTable);
 
-        writeAttributes(attrib, new String[]{ITableAttributes.ATTR_HEADER});
-        writeAttributes(attrib, ITableAttributes.ROW_BORDER);
-        writeAttributes(attrib, ITableAttributes.CELL_BORDER);
-        writeAttributes(attrib, IBorderAttributes.BORDERS);
+        w.writeAttributes(attrib, new String[]{ITableAttributes.ATTR_HEADER});
+        w.writeAttributes(attrib, ITableAttributes.ROW_BORDER);
+        w.writeAttributes(attrib, ITableAttributes.CELL_BORDER);
+        w.writeAttributes(attrib, IBorderAttributes.BORDERS);
 
         if (attrib.isSet(ITableAttributes.ROW_HEIGHT)) {
-            writeOneAttribute(
+            w.writeOneAttribute(
                     ITableAttributes.ROW_HEIGHT,
                     attrib.getValue(ITableAttributes.ROW_HEIGHT));
         }
@@ -273,12 +270,12 @@ public class RtfTableRow extends RtfContainer implements ITableAttributes {
                 }
 
                 // write cell's definition
-                xPos = rtfcell.writeCellDef(xPos);
+                xPos = rtfcell.writeCellDef(w, xPos);
             }
           index++; // Added by Boris POUDEROUS on 2002/07/02
         }
 
-        newLine();
+        w.newLine();
     }
 
     private void adjustBorderProperties(RtfTable parentTable) {
@@ -302,35 +299,28 @@ public class RtfTableRow extends RtfContainer implements ITableAttributes {
         }
     }
 
-    /**
-     * Overridden to write RTF suffix code, what comes after our children
-     * @throws IOException for I/O problems
-     */
-    protected void writeRtfSuffix() throws IOException {
+    /** {@inheritDoc} */
+    protected void writeRtfSuffix(RtfWriter w) throws IOException {
         if (getTable().isNestedTable()) {
             //nested table
-            writeGroupMark(true);
-            writeStarControlWord("nesttableprops");
-            writeRowAndCellsDefintions();
-            writeControlWord("nestrow");
-            writeGroupMark(false);
+            w.writeGroupMark(true);
+            w.writeStarControlWord("nesttableprops");
+            writeRowAndCellsDefintions(w);
+            w.writeControlWord("nestrow");
+            w.writeGroupMark(false);
 
-            writeGroupMark(true);
-            writeControlWord("nonesttables");
-            writeControlWord("par");
-            writeGroupMark(false);
+            w.writeGroupMark(true);
+            w.writeControlWord("nonesttables");
+            w.writeControlWord("par");
+            w.writeGroupMark(false);
         } else {
-            writeControlWord("row");
+            w.writeControlWord("row");
         }
 
-        writeGroupMark(false);
+        w.writeGroupMark(false);
     }
 
-//    RtfExtraRowSet getExtraRowSet() {
-//        return extraRowSet;
-//    }
-
-    private void writePaddingAttributes()
+    private void writePaddingAttributes(RtfWriter w)
     throws IOException {
         // Row padding attributes generated in the converter package
         // use RTF 1.6 definitions - try to compute a reasonable RTF 1.5 value
@@ -350,7 +340,6 @@ public class RtfTableRow extends RtfContainer implements ITableAttributes {
                 }
             } catch (Exception e) {
                 final String msg = "RtfTableRow.writePaddingAttributes: " + e.toString();
-//                getRtfFile().getLog().logWarning(msg);
             }
             if (gaph >= 0) {
                 attrib.set(ATTR_RTF_15_TRGAPH, gaph);
@@ -358,7 +347,7 @@ public class RtfTableRow extends RtfContainer implements ITableAttributes {
         }
 
         // write all padding attributes
-        writeAttributes(attrib, ATTRIB_ROW_PADDING);
+        w.writeAttributes(attrib, ATTRIB_ROW_PADDING);
     }
 
     /**

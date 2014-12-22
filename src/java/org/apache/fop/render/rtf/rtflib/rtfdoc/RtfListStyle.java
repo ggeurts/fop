@@ -61,27 +61,29 @@ public class RtfListStyle {
 
     /**
      * Gets called before a RtfListItem has to be written.
-     * @param item RtfListItem this style belongs to
+     * @param w The {@link RtfWriter} to write to.
+     * @param item The {@link RtfListItem} this style belongs to.
      * @throws IOException Thrown when an IO-problem occurs.
      */
-    public void writeListPrefix(RtfListItem item)
+    public void writeListPrefix(RtfWriter w, RtfListItem item)
     throws IOException {
     }
     /**
      * Gets called before a paragraph has to be written, which is contained by a RtfListItem.
-     * @param element RtfElement in whose context is to be written
+     * @param w The {@link RtfWriter} to write to.
      * @throws IOException Thrown when an IO-problem occurs.
      */
-    public void writeParagraphPrefix(RtfElement element)
+    public void writeParagraphPrefix(RtfWriter w)
     throws IOException {
     }
 
     /**
      * Gets called when the list table has to be written.
-     * @param element RtfElement in whose context is to be written
+     * @param w The {@link RtfWriter} to write to.
+     * @param table The @{link RtfListTable} that is to be written.
      * @throws IOException Thrown when an IO-problem occurs.
      */
-    public void writeLevelGroup(RtfElement element)
+    public void writeLevelGroup(RtfWriter w, RtfListTable table)
     throws IOException {
     }
 }

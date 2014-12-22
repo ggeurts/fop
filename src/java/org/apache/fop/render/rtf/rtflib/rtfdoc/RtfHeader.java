@@ -27,7 +27,6 @@ package org.apache.fop.render.rtf.rtflib.rtfdoc;
  */
 
 import java.io.IOException;
-import java.io.Writer;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -44,55 +43,58 @@ class RtfHeader extends RtfContainer {
     private static final String CHARSET = "ansi";
     private final Map userProperties = new HashMap();
 
-    /** Create an RTF header */
-    RtfHeader(RtfFile f, RtfWriter w) throws IOException {
-        super(f, w);
-        new RtfFontTable(this, w);
-        new RtfGenerator(this, w);
-//        m_userProperties.put("jforVersion",JForVersionInfo.getLongVersionInfo());
+    /** Create an RTF header
+     * @param f the parent RTF file
+     */
+    RtfHeader(RtfFile f) throws IOException {
+        super(f);
+        new RtfFontTable(this);
+        new RtfGenerator(this);
     }
 
-    /** Overridden to write our own data before our children's data */
-    protected void writeRtfContent() throws IOException {
-        writeControlWord(CHARSET);
-        writeUserProperties();
-        RtfColorTable.getInstance().writeColors(this);
-        super.writeRtfContent();
-        RtfTemplate.getInstance().writeTemplate(this);
-        RtfStyleSheetTable.getInstance().writeStyleSheet(this);
-        writeFootnoteProperties();
+    /** {@inheritDoc} 
+     * Overridden to write our own data before our children's data.
+     */
+    protected void writeRtfContent(RtfWriter w) throws IOException {
+        w.writeControlWord(CHARSET);
+        writeUserProperties(w);
+        RtfColorTable.getInstance().writeColors(w);
+        super.writeRtfContent(w);
+        RtfTemplate.getInstance().writeTemplate(w);
+        RtfStyleSheetTable.getInstance().writeStyleSheet(w);
+        writeFootnoteProperties(w);
 
     }
 
     /** write user properties if any */
-    private void writeUserProperties() throws IOException {
+    private void writeUserProperties(RtfWriter w) throws IOException {
         if (userProperties.size() > 0) {
-            writeGroupMark(true);
-            writeStarControlWord("userprops");
+            w.writeGroupMark(true);
+            w.writeStarControlWord("userprops");
             for (Iterator it = userProperties.entrySet().iterator(); it.hasNext();) {
                 final Map.Entry entry = (Map.Entry)it.next();
-                writeGroupMark(true);
-                writeControlWord("propname");
-                write(entry.getKey().toString());
-                writeGroupMark(false);
-                writeControlWord("proptype30");
-                writeGroupMark(true);
-                writeControlWord("staticval");
-                write(entry.getValue().toString());
-                writeGroupMark(false);
+                w.writeGroupMark(true);
+                w.writeControlWord("propname");
+                w.write(entry.getKey().toString());
+                w.writeGroupMark(false);
+                w.writeControlWord("proptype30");
+                w.writeGroupMark(true);
+                w.writeControlWord("staticval");
+                w.write(entry.getValue().toString());
+                w.writeGroupMark(false);
             }
-            writeGroupMark(false);
+            w.writeGroupMark(false);
         }
     }
 
     /**
      *write properties for footnote handling
      */
-    private void writeFootnoteProperties() throws IOException {
-        newLine();
-        writeControlWord("fet0");  //footnotes, not endnotes
-        writeControlWord("ftnbj"); //place footnotes at the end of the
-                                   //page (should be the default, but
-                                   //Word 2000 thinks otherwise)
+    private void writeFootnoteProperties(RtfWriter w) throws IOException {
+        w.newLine();
+        w.writeControlWord("fet0");  //footnotes, not endnotes
+        w.writeControlWord("ftnbj"); //place footnotes at the end of the
+                                     //page (should be the default, but
+                                     //Word 2000 thinks otherwise)
     }
 }

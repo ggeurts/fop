@@ -44,11 +44,11 @@ import org.apache.fop.render.rtf.rtflib.exceptions.RtfStructureException;
 
 public class RtfFile
 extends RtfContainer {
+    private RtfWriter writer;
     private RtfHeader header;
     private RtfPageArea pageArea;
     private RtfListTable listTable;
     private RtfDocumentArea docArea;
-//    private ConverterLogChannel m_log;
     private RtfContainer listTableContainer;
     private int listNum;
 
@@ -58,25 +58,9 @@ extends RtfContainer {
      * @throws IOException for I/O problems
      */
     public RtfFile(Writer w) throws IOException {
-        super(null, new RtfWriter(w));
+        super(null);
+        writer = w != null ? new RtfWriter(w) : null;
     }
-
-    /** optional log channel */
-//    public void setLogChannel(ConverterLogChannel log)
-//    {
-//        m_log = log;
-//    }
-
-    /**
-     * Gets the log channel.
-     * If logchannel not set, it will return a empty log channel.
-     * @return our log channel, it is never null */
-//    ConverterLogChannel getLog()
-//    {
-//        if (m_log == null)
-//            m_log = new ConverterLogChannel (null);
-//        return m_log;
-//    }
 
     /**
      * If called, must be called before startDocumentArea
@@ -89,8 +73,8 @@ extends RtfContainer {
         if (header != null) {
             throw new RtfStructureException("startHeader called more than once");
         }
-        header = new RtfHeader(this, writer);
-        listTableContainer = new RtfContainer(this, writer);
+        header = new RtfHeader(this);
+        listTableContainer = new RtfContainer(this);
         return header;
     }
 
@@ -106,7 +90,7 @@ extends RtfContainer {
         if (listTable != null) {
             return listTable;
         } else {
-            listTable = new RtfListTable(this, writer, new Integer(listNum), attr);
+            listTable = new RtfListTable(this, new Integer(listNum), attr);
             listTableContainer.addChild(listTable);
         }
 
@@ -122,7 +106,7 @@ extends RtfContainer {
     }
 
     /**
-     * Closes the RtfHeader if not done yet, and starts the docment area.
+     * Closes the RtfHeader if not done yet, and starts the document area.
      * Like startDocumentArea, is only called once. This is not optimal,
      * must be able to have multiple page definition, and corresponding
      * Document areas
@@ -140,9 +124,7 @@ extends RtfContainer {
             startHeader();
         }
         header.close();
-        pageArea = new RtfPageArea(this, writer);
-        addChild(pageArea);
-        return pageArea;
+        return pageArea = new RtfPageArea(this);
     }
 
     /**
@@ -176,12 +158,8 @@ extends RtfContainer {
             startHeader();
         }
         header.close();
-        docArea = new RtfDocumentArea(this, writer);
-        addChild(docArea);
-        return docArea;
+        return docArea = new RtfDocumentArea(this);
     }
-
-
 
     /**
      * Call startDocumentArea if needed and return the document area object.
@@ -199,19 +177,21 @@ extends RtfContainer {
 
     /**
      * overridden to write RTF prefix code, what comes before our children
+     * @param w the value of w
      * @throws IOException for I/O problems
      */
-    protected void writeRtfPrefix() throws IOException {
-        writeGroupMark(true);
-        writeControlWord("rtf1");
+    protected void writeRtfPrefix(RtfWriter w) throws IOException {
+        w.writeGroupMark(true);
+        w.writeControlWord("rtf1");
     }
 
     /**
      * overridden to write RTF suffix code, what comes after our children
+     * @param w the value of w
      * @throws IOException for I/O problems
      */
-    protected void writeRtfSuffix() throws IOException {
-        writeGroupMark(false);
+    protected void writeRtfSuffix(RtfWriter w) throws IOException {
+        w.writeGroupMark(false);
     }
 
     /**
@@ -219,8 +199,10 @@ extends RtfContainer {
      * @throws IOException for I/O problems
      */
     public synchronized void flush() throws IOException {
-        writeRtf();
-        writer.flush();
+        if (writer != null) {
+            writeRtf(writer);
+            writer.flush();
+        }
     }
 
     /**

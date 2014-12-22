@@ -45,13 +45,13 @@ public class RtfContainer extends RtfElement {
     private RtfOptions options = new RtfOptions();
 
     /** Create an RTF container as a child of given container */
-    RtfContainer(RtfContainer parent, RtfWriter w) throws IOException {
-        this(parent, w, null);
+    RtfContainer(RtfContainer parent) throws IOException {
+        this(parent, null);
     }
 
     /** Create an RTF container as a child of given container with given attributes */
-    RtfContainer(RtfContainer parent, RtfWriter w, RtfAttributes attr) throws IOException {
-        super(parent, w, attr);
+    RtfContainer(RtfContainer parent, RtfAttributes attr) throws IOException {
+        super(parent, attr);
         children = new LinkedList();
     }
 
@@ -136,13 +136,14 @@ public class RtfContainer extends RtfElement {
 
     /**
      * write RTF code of all our children
+     * @param w the {@link RtwWriter} to write to
      * @throws IOException for I/O problems
      */
-    protected void writeRtfContent()
+    protected void writeRtfContent(RtfWriter w)
     throws IOException {
         for (Iterator it = children.iterator(); it.hasNext();) {
             final RtfElement e = (RtfElement)it.next();
-            e.writeRtf();
+            e.writeRtf(w);
         }
     }
 

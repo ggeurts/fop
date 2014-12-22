@@ -57,11 +57,10 @@ public class RtfBookmark extends RtfElement {
      * Constructor.
      *
      * @param parent a <code>RtfBookmarkContainer</code> value
-     * @param writer a <code>Writer</code> value
      * @param bookmark Name of the bookmark
      */
-    RtfBookmark(RtfContainer parent, RtfWriter writer, String bookmark) throws IOException {
-        super(parent, writer);
+    RtfBookmark(RtfContainer parent, String bookmark) throws IOException {
+        super(parent);
 
         int now = bookmark.length();
 
@@ -76,60 +75,25 @@ public class RtfBookmark extends RtfElement {
     // @@ RtfElement implementation
     //////////////////////////////////////////////////
 
-    /**
-     * Is called before writing the Rtf content.
-     *
-     * @throws IOException On Error
-     */
-    public void writeRtfPrefix() throws IOException {
-        startBookmark();
+    /** {@inheritDoc} */
+    protected void writeRtfPrefix(RtfWriter w) throws IOException {
+        // {\*\bkmkstart test}
+        writeRtfBookmark(w, "bkmkstart");
     }
 
-    /**
-     * Writes the RTF content to m_writer.
-     *
-     * @exception IOException On error
-     */
-    public void writeRtfContent() throws IOException {
-//        this.getRtfFile ().getLog ().logInfo ("Write bookmark '" + bookmark + "'.");
-        // No content to write
+    /** {@inheritDoc} */
+    protected void writeRtfContent(RtfWriter w) throws IOException {
     }
 
-    /**
-     * Is called after writing the Rtf content.
-     *
-     * @throws IOException On Error
-     */
-    public void writeRtfSuffix() throws IOException {
-        endBookmark();
+    /** {@inheritDoc} */
+    protected void writeRtfSuffix(RtfWriter w) throws IOException {
+        // {\*\bkmkend test}
+        writeRtfBookmark(w, "bkmkend");
     }
-
 
     //////////////////////////////////////////////////
     // @@ Private methods
     //////////////////////////////////////////////////
-
-    /**
-     * Writes RTF content to begin the bookmark.
-     *
-     * @throws IOException On error
-     */
-    private void startBookmark() throws IOException {
-
-        // {\*\bkmkstart test}
-        writeRtfBookmark("bkmkstart");
-    }
-
-    /**
-     * Writes RTF content to close the bookmark.
-     *
-     * @throws IOException On error
-     */
-    private void endBookmark() throws IOException {
-
-        // {\*\bkmkend test}
-        writeRtfBookmark("bkmkend");
-    }
 
     /**
      * Writes the rtf bookmark.
@@ -138,25 +102,21 @@ public class RtfBookmark extends RtfElement {
      *
      * @throws IOException On error
      */
-    private void writeRtfBookmark(String tag) throws IOException {
+    private void writeRtfBookmark(RtfWriter w, String tag) throws IOException {
         if (bookmark == null) {
             return;
-
         }
 
-        this.writeGroupMark(true);
-
-        //changed. Now using writeStarControlWord
-        this.writeStarControlWord(tag);
-
-        writer.write(bookmark);
-        this.writeGroupMark(false);
+        w.writeGroupMark(true);
+        w.writeStarControlWord(tag);
+        w.write(bookmark);
+        w.writeGroupMark(false);
     }
 
-        /**
-         * @return true if this element would generate no "useful" RTF content
-         */
-        public boolean isEmpty() {
-            return bookmark == null || bookmark.trim().length() == 0;
-        }
+    /**
+     * @return true if this element would generate no "useful" RTF content
+     */
+    public boolean isEmpty() {
+        return bookmark == null || bookmark.trim().length() == 0;
+    }
 }

@@ -27,7 +27,6 @@ package org.apache.fop.render.rtf.rtflib.rtfdoc;
  */
 
 import java.io.IOException;
-import java.io.Writer;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -128,9 +127,9 @@ public class RtfExtraRowSet extends RtfContainer {
     /** an RtfExtraRowSet has no parent, it is only used temporary during
      *  generation of RTF for an RtfTableRow
      */
-    RtfExtraRowSet(RtfWriter w)
+    RtfExtraRowSet()
     throws IOException {
-        super(null, w);
+        super(null);
     }
 
     /** Add all cells of given Table to this set for later rendering in extra rows
@@ -170,7 +169,7 @@ public class RtfExtraRowSet extends RtfContainer {
     RtfTableCell createExtraCell(int rowIndex, int xOffset, int cellWidth,
                                  RtfAttributes parentCellAttributes)
     throws IOException {
-        final RtfTableCell c = new RtfTableCell(null, writer, cellWidth,
+        final RtfTableCell c = new RtfTableCell(null, cellWidth,
                 parentCellAttributes, DEFAULT_IDNUM);
         cells.add(new PositionedCell(c, rowIndex, xOffset));
         return c;
@@ -179,9 +178,10 @@ public class RtfExtraRowSet extends RtfContainer {
     /**
      * render extra RtfTableRows containing all the extra RtfTableCells that we
      * contain
+     * @param w the value of w
      * @throws IOException for I/O problems
      */
-    protected void writeRtfContent() throws IOException {
+    protected void writeRtfContent(RtfWriter w) throws IOException {
         // sort cells by rowIndex and xOffset
         Collections.sort(cells);
 
@@ -193,7 +193,7 @@ public class RtfExtraRowSet extends RtfContainer {
             if (pc.rowIndex != rowIndex) {
                 // starting a new row, render previous one
                 if (rowCells != null) {
-                    writeRow(rowCells);
+                    writeRow(w, rowCells);
                 }
                 rowIndex = pc.rowIndex;
                 rowCells = new LinkedList();
@@ -203,18 +203,18 @@ public class RtfExtraRowSet extends RtfContainer {
 
         // render last row
         if (rowCells != null) {
-            writeRow(rowCells);
+            writeRow(w, rowCells);
         }
     }
 
     /** write one RtfTableRow containing given PositionedCells */
-    private void writeRow(List cells)
+    private void writeRow(RtfWriter w, List cells)
     throws IOException {
         if (allCellsEmpty(cells)) {
             return;
         }
 
-        final RtfTableRow row = new RtfTableRow(null, writer, DEFAULT_IDNUM);
+        final RtfTableRow row = new RtfTableRow(null, DEFAULT_IDNUM);
         int cellIndex = 0;
 
         // Get the context of the table that holds the nested table
@@ -278,7 +278,7 @@ public class RtfExtraRowSet extends RtfContainer {
                 }
            }
 
-        row.writeRtf();
+        row.writeRtf(w);
     }
 
     /** true if all cells of given list are empty

@@ -20,18 +20,16 @@
 package org.apache.fop.render.rtf.rtflib.rtfdoc;
 
 import java.io.IOException;
-import java.io.Writer;
 
 /**  Class which represents a paragraph break.*/
-
 public class RtfParagraphBreak extends RtfElement {
     private static final String DEFAULT_PARAGRAPH = "par";
 
     private String controlWord = DEFAULT_PARAGRAPH;
 
-    RtfParagraphBreak(RtfContainer parent, RtfWriter w)
+    RtfParagraphBreak(RtfContainer parent)
             throws IOException {
-        super(parent, w);
+        super(parent);
     }
 
     /**
@@ -41,13 +39,10 @@ public class RtfParagraphBreak extends RtfElement {
         return false;
     }
 
-    /**
-     * write RTF code of all our children
-     * @throws IOException for I/O problems
-     */
-    protected void writeRtfContent() throws IOException {
+    /** {@inheritDoc} */
+    protected void writeRtfContent(RtfWriter w) throws IOException {
         if (controlWord != null) {
-            writeControlWord(controlWord);
+            w.writeControlWord(controlWord);
         }
     }
 

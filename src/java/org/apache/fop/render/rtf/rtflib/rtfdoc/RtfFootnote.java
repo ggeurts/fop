@@ -20,7 +20,6 @@
 package org.apache.fop.render.rtf.rtflib.rtfdoc;
 
 import java.io.IOException;
-import java.io.Writer;
 
 /**
  * <p>Model of an RTF footnote.</p>
@@ -41,10 +40,10 @@ public class RtfFootnote extends RtfContainer
      * @param w a writer
      * @throws IOException if not caught
      */
-    RtfFootnote(RtfContainer parent, RtfWriter w) throws IOException {
-        super(parent, w);
-        textrunInline = new RtfTextrun(this, writer, null);
-        body = new RtfContainer(this, writer);
+    RtfFootnote(RtfContainer parent) throws IOException {
+        super(parent);
+        textrunInline = new RtfTextrun(this, null);
+        body = new RtfContainer(this);
     }
 
     /**
@@ -53,7 +52,7 @@ public class RtfFootnote extends RtfContainer
      */
     public RtfTextrun getTextrun() throws IOException {
         if (bBody) {
-            RtfTextrun textrun = RtfTextrun.getTextrun(body, writer, null);
+            RtfTextrun textrun = RtfTextrun.getTextrun(body, null);
             textrun.setSuppressLastPar(true);
 
             return textrun;
@@ -62,25 +61,22 @@ public class RtfFootnote extends RtfContainer
         }
     }
 
-    /**
-    * write RTF code of all our children
-    * @throws IOException for I/O problems
-    */
-    protected void writeRtfContent() throws IOException {
-        textrunInline.writeRtfContent();
+    /** {@inheritDoc} */
+    protected void writeRtfContent(RtfWriter w) throws IOException {
+        textrunInline.writeRtfContent(w);
 
-        writeGroupMark(true);
-        writeControlWord("footnote");
-        writeControlWord("ftnalt");
+        w.writeGroupMark(true);
+        w.writeControlWord("footnote");
+        w.writeControlWord("ftnalt");
 
-        body.writeRtfContent();
+        body.writeRtfContent(w);
 
-        writeGroupMark(false);
+        w.writeGroupMark(false);
     }
 
     /**
      * @param attrs some attributes
-     * @return an rtf list
+     * @return a RTF list
      * @throws IOException if not caught
      */
     public RtfList newList(RtfAttributes attrs) throws IOException {
@@ -88,8 +84,7 @@ public class RtfFootnote extends RtfContainer
             list.close();
         }
 
-        list = new RtfList(body, writer, attrs);
-
+        list = new RtfList(body, attrs);
         return list;
     }
 

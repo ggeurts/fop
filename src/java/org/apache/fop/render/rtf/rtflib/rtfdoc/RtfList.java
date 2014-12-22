@@ -27,7 +27,6 @@ package org.apache.fop.render.rtf.rtflib.rtfdoc;
  */
 
 import java.io.IOException;
-import java.io.Writer;
 import java.util.Random;
 
 /**
@@ -47,8 +46,8 @@ public class RtfList extends RtfContainer {
     private static Random listIdGenerator = new Random(0);
 
     /** Create an RTF list as a child of given container with given attributes */
-    RtfList(RtfContainer parent, RtfWriter w, RtfAttributes attr) throws IOException {
-        super(parent, w, attr);
+    RtfList(RtfContainer parent, RtfAttributes attr) throws IOException {
+        super(parent, attr);
 
         //random number generator for ids
         listId = new Integer(listIdGenerator.nextInt());
@@ -59,9 +58,9 @@ public class RtfList extends RtfContainer {
         listTable.addList(this);
 
         // find out if we are nested in a table
-        hasTableParent = this.getParentOfClass(RtfTable.class) != null;
+        hasTableParent = getParentOfClass(RtfTable.class) != null;
 
-        this.setRtfListStyle(new RtfListStyleBullet());
+        setRtfListStyle(new RtfListStyleBullet());
     }
 
     /**
@@ -73,7 +72,7 @@ public class RtfList extends RtfContainer {
         if (item != null) {
             item.close();
         }
-        item = new RtfListItem(this, writer);
+        item = new RtfListItem(this);
         return item;
     }
 

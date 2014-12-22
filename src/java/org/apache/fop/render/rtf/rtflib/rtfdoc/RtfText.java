@@ -27,7 +27,6 @@ package org.apache.fop.render.rtf.rtflib.rtfdoc;
  */
 
 import java.io.IOException;
-import java.io.Writer;
 
 import org.apache.fop.apps.FOPException;
 
@@ -195,43 +194,40 @@ public class RtfText extends RtfElement {
     /** Create an RtfText in given IRtfTextContainer.
      *  @param str optional initial text content
      */
-    RtfText(IRtfTextContainer parent, RtfWriter w, String str, RtfAttributes attr)
+    RtfText(IRtfTextContainer parent, String str, RtfAttributes attr)
            throws IOException {
-        super((RtfContainer)parent, w);
+        super((RtfContainer)parent);
         this.text = str;
         this.attr = attr;
     }
 
-    /**
-     * Write our text to the RTF stream
-     * @throws IOException for I/O problems
-     */
-    public void writeRtfContent() throws IOException {
+    /** {@inheritDoc} */
+    protected void writeRtfContent(RtfWriter w) throws IOException {
         writeChars: {
 
             //these lines were added by Boris Pouderous
             if (attr != null) {
-                writeAttributes(attr, new String[] {RtfText.SPACE_BEFORE});
-                writeAttributes(attr, new String[] {RtfText.SPACE_AFTER});
+                w.writeAttributes(attr, new String[] {RtfText.SPACE_BEFORE});
+                w.writeAttributes(attr, new String[] {RtfText.SPACE_AFTER});
             }
 
             if (isTab()) {
-                writeControlWord("tab");
+                w.writeControlWord("tab");
             } else if (isNewLine()) {
                 break writeChars;
             } else if (isBold(true)) {
-                writeControlWord("b");
+                w.writeControlWord("b");
             } else if (isBold(false)) {
-                writeControlWord("b0");
+                w.writeControlWord("b0");
             // TODO not optimal, consecutive RtfText with same attributes
             // could be written without group marks
             } else {
-                writeGroupMark(true);
+                w.writeGroupMark(true);
                 if (attr != null && mustWriteAttributes()) {
-                    writeAttributes(attr, RtfText.ATTR_NAMES);
+                    w.writeAttributes(attr, RtfText.ATTR_NAMES);
                 }
-                write(text);
-                writeGroupMark(false);
+                w.write(text);
+                w.writeGroupMark(false);
             }
         }
     }

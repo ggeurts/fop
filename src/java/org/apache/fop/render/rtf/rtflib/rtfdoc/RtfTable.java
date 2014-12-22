@@ -27,7 +27,6 @@ package org.apache.fop.render.rtf.rtflib.rtfdoc;
  */
 
 import java.io.IOException;
-import java.io.Writer;
 
 import org.apache.fop.apps.FOPException;
 
@@ -51,21 +50,21 @@ public class RtfTable extends RtfContainer {
     private int nestedTableDepth;
 
     /** Create an RTF element as a child of given container */
-    RtfTable(IRtfTableContainer parent, RtfWriter w, ITableColumnsInfo tc)
-            throws IOException {
-        super((RtfContainer)parent, w);
+    RtfTable(IRtfTableContainer parent, ITableColumnsInfo tc)
+    throws IOException {
+        super((RtfContainer)parent);
         // Line added by Boris Poudérous on 07/22/2002
         tableContext = tc;
     }
 
     /** Create an RTF element as a child of given container
-   * Modified by Boris Poudérous in order to process 'number-columns-spanned' attribute
-   */
-  RtfTable(IRtfTableContainer parent, RtfWriter w, RtfAttributes attrs,
-           ITableColumnsInfo tc) throws IOException {
-        super((RtfContainer)parent, w, attrs);
-    // Line added by Boris Poudérous on 07/22/2002
-    tableContext = tc;
+      * Modified by Boris Poudérous in order to process 'number-columns-spanned' attribute
+      */
+    RtfTable(IRtfTableContainer parent, RtfAttributes attrs, ITableColumnsInfo tc) 
+    throws IOException {
+        super((RtfContainer)parent, attrs);
+        // Line added by Boris Poudérous on 07/22/2002
+        tableContext = tc;
     }
 
     /**
@@ -79,7 +78,7 @@ public class RtfTable extends RtfContainer {
         }
 
         highestRow++;
-        row = new RtfTableRow(this, writer, attrib, highestRow);
+        row = new RtfTableRow(this, attrib, highestRow);
         return row;
     }
 
@@ -107,33 +106,29 @@ public class RtfTable extends RtfContainer {
         }
         highestRow++;
 
-        row = new RtfTableRow(this, writer, attr, highestRow);
+        row = new RtfTableRow(this, attr, highestRow);
         return row;
     }
 
 
 
-    /**
-     * Overridden to write RTF prefix code, what comes before our children
-     * @throws IOException for I/O problems
-     */
-    protected void writeRtfPrefix() throws IOException {
+    /** {@inheritDoc} */
+    protected void writeRtfPrefix(RtfWriter w) throws IOException {
         if (isNestedTable()) {
-            writeControlWord("pard");
+            w.writeControlWord("pard");
         }
-
-        writeGroupMark(true);
+        w.writeGroupMark(true);
     }
 
     /**
      * Overridden to write RTF suffix code, what comes after our children
+     * @param w the value of w
      * @throws IOException for I/O problems
      */
-    protected void writeRtfSuffix() throws IOException {
-        writeGroupMark(false);
-
+    protected void writeRtfSuffix(RtfWriter w) throws IOException {
+        w.writeGroupMark(false);
         if (isNestedTable()) {
-            getRow().writeRowAndCellsDefintions();
+            getRow().writeRowAndCellsDefintions(w);
         }
     }
 

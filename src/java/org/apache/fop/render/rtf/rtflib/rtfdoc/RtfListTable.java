@@ -101,9 +101,9 @@ public class RtfListTable extends RtfContainer {
      * @param attrs attributes of new RtfListTable
      * @throws IOException for I/O problems
      */
-    public RtfListTable(RtfContainer parent, RtfWriter w, Integer num, RtfAttributes attrs)
+    public RtfListTable(RtfContainer parent, Integer num, RtfAttributes attrs)
     throws IOException {
-        super(parent, w, attrs);
+        super(parent, attrs);
 
         styles = new LinkedList();
     }
@@ -125,46 +125,47 @@ public class RtfListTable extends RtfContainer {
 
     /**
      * Write the content
+     * @param w the value of w
      * @throws IOException for I/O problems
      */
-    public void writeRtfContent() throws IOException {
-        newLine();
+    protected void writeRtfContent(RtfWriter w) throws IOException {
+        w.newLine();
         if (lists != null) {
             //write '\listtable'
-            writeGroupMark(true);
-            writeStarControlWord(LIST_TABLE);
-            newLine();
+            w.writeGroupMark(true);
+            w.writeStarControlWord(LIST_TABLE);
+            w.newLine();
             for (Iterator it = lists.iterator(); it.hasNext();) {
                 final RtfList list = (RtfList)it.next();
-                writeListTableEntry(list);
-                newLine();
+                writeListTableEntry(w, list);
+                w.newLine();
             }
-            writeGroupMark(false);
+            w.writeGroupMark(false);
 
-            newLine();
+            w.newLine();
             //write '\listoveridetable'
-            writeGroupMark(true);
-            writeStarControlWord(LIST_OVR_TABLE);
+            w.writeGroupMark(true);
+            w.writeStarControlWord(LIST_OVR_TABLE);
             int z = 1;
-            newLine();
+            w.newLine();
             for (Iterator it = styles.iterator(); it.hasNext();) {
                 final RtfListStyle style = (RtfListStyle)it.next();
 
-                writeGroupMark(true);
-                writeStarControlWord(LIST_OVR);
-                writeGroupMark(true);
+                w.writeGroupMark(true);
+                w.writeStarControlWord(LIST_OVR);
+                w.writeGroupMark(true);
 
-                writeOneAttribute(LIST_ID, style.getRtfList().getListId().toString());
-                writeOneAttribute(LIST_OVR_COUNT, new Integer(0));
-                writeOneAttribute(LIST_NUMBER, new Integer(z++));
+                w.writeOneAttribute(LIST_ID, style.getRtfList().getListId().toString());
+                w.writeOneAttribute(LIST_OVR_COUNT, new Integer(0));
+                w.writeOneAttribute(LIST_NUMBER, new Integer(z++));
 
-                writeGroupMark(false);
-                writeGroupMark(false);
-                newLine();
+                w.writeGroupMark(false);
+                w.writeGroupMark(false);
+                w.newLine();
             }
 
-            writeGroupMark(false);
-            newLine();
+            w.writeGroupMark(false);
+            w.newLine();
         }
     }
 
@@ -177,37 +178,37 @@ public class RtfListTable extends RtfContainer {
         return false;
     }
 
-    private void writeListTableEntry(RtfList list)
+    private void writeListTableEntry(RtfWriter w, RtfList list)
     throws IOException {
         //write list-specific attributes
-        writeGroupMark(true);
-        writeControlWord(LIST);
-        writeOneAttribute(LIST_TEMPLATE_ID, list.getListTemplateId().toString());
-        writeOneAttribute(LIST, attrib.getValue(LIST));
+        w.writeGroupMark(true);
+        w.writeControlWord(LIST);
+        w.writeOneAttribute(LIST_TEMPLATE_ID, list.getListTemplateId().toString());
+        w.writeOneAttribute(LIST, attrib.getValue(LIST));
 
         // write level-specific attributes
-        writeGroupMark(true);
-        writeControlWord(LIST_LEVEL);
+        w.writeGroupMark(true);
+        w.writeControlWord(LIST_LEVEL);
 
-        writeOneAttribute(LIST_JUSTIFICATION, attrib.getValue(LIST_JUSTIFICATION));
-        writeOneAttribute(LIST_FOLLOWING_CHAR, attrib.getValue(LIST_FOLLOWING_CHAR));
-        writeOneAttribute(LIST_SPACE, new Integer(0));
-        writeOneAttribute(LIST_INDENT, attrib.getValue(LIST_INDENT));
+        w.writeOneAttribute(LIST_JUSTIFICATION, attrib.getValue(LIST_JUSTIFICATION));
+        w.writeOneAttribute(LIST_FOLLOWING_CHAR, attrib.getValue(LIST_FOLLOWING_CHAR));
+        w.writeOneAttribute(LIST_SPACE, new Integer(0));
+        w.writeOneAttribute(LIST_INDENT, attrib.getValue(LIST_INDENT));
 
         RtfListItem item = (RtfListItem)list.getChildren().get(0);
         if (item != null) {
-            item.getRtfListStyle().writeLevelGroup(this);
+            item.getRtfListStyle().writeLevelGroup(w, this);
         }
 
-        writeGroupMark(false);
+        w.writeGroupMark(false);
 
-        writeGroupMark(true);
-        writeControlWord(LIST_NAME);
-        writeGroupMark(false);
+        w.writeGroupMark(true);
+        w.writeControlWord(LIST_NAME);
+        w.writeGroupMark(false);
 
-        writeOneAttribute(LIST_ID, list.getListId().toString());
+        w.writeOneAttribute(LIST_ID, list.getListId().toString());
 
-        writeGroupMark(false);
+        w.writeGroupMark(false);
     }
 
     /**

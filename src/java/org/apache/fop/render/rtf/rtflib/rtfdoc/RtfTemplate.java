@@ -29,7 +29,7 @@ package org.apache.fop.render.rtf.rtflib.rtfdoc;
 import java.io.IOException;
 
 /**
- * Singelton of the RTF style template
+ * Singleton of the RTF style template
  * This class belongs to the <jfor:style-template> tag processing.
  */
 
@@ -74,22 +74,22 @@ public final class RtfTemplate  {
 
     /**
      * Write the rtf template
-     * @param header Rtf header is the parent
+     * @param w The {@link RtfWriter} to write to.
      * @throws IOException On write error
      */
-    public void writeTemplate(RtfHeader header) throws IOException {
+    public void writeTemplate(RtfWriter w) throws IOException {
         if (templateFilePath == null || templateFilePath.length() == 0) {
             return;
         }
 
-        header.writeGroupMark(true);
-        header.writeControlWord("template");
-        header.write(this.templateFilePath);
-        header.writeGroupMark(false);
+        w.writeGroupMark(true);
+        w.writeControlWord("template");
+        w.write(this.templateFilePath);
+        w.writeGroupMark(false);
 
-        header.writeGroupMark(true);
-        header.writeControlWord("linkstyles");
-        header.writeGroupMark(false);
+        w.writeGroupMark(true);
+        w.writeControlWord("linkstyles");
+        w.writeGroupMark(false);
     }
 }
 

@@ -201,33 +201,33 @@ public final class RtfStyleSheetTable {
 
     /**
      * Writes the rtf style sheet table.
-     * @param header Rtf header is the parent
+     * @param w The {@link RtfWriter} to write to.
      * @throws IOException On write error
      */
-    public void writeStyleSheet(RtfHeader header) throws IOException {
-        if (styles == null || styles.size() == 0) {
+    public void writeStyleSheet(RtfWriter w) throws IOException {
+        if (styles == null || styles.isEmpty()) {
             return;
         }
-        header.writeGroupMark(true);
-        header.writeControlWord("stylesheet");
+        w.writeGroupMark(true);
+        w.writeControlWord("stylesheet");
 
         int number = nameTable.size();
         for (int i = 0; i < number; i++) {
             String name = (String) nameTable.elementAt(i);
-            header.writeGroupMark(true);
-            header.writeControlWord("*\\" + this.getRtfStyleReference(name));
+            w.writeGroupMark(true);
+            w.writeStarControlWord(this.getRtfStyleReference(name));
 
             Object o = attrTable.get(name);
             if (o != null) {
-                header.writeAttributes((RtfAttributes) o, RtfText.ATTR_NAMES);
-                header.writeAttributes((RtfAttributes) o, RtfText.ALIGNMENT);
+                w.writeAttributes((RtfAttributes) o, RtfText.ATTR_NAMES);
+                w.writeAttributes((RtfAttributes) o, RtfText.ALIGNMENT);
             }
 
-            header.write(name);
-            header.write(";");
-            header.writeGroupMark(false);
+            w.write(name);
+            w.write(';');
+            w.writeGroupMark(false);
         }
-        header.writeGroupMark(false);
+        w.writeGroupMark(false);
     }
 
     /**

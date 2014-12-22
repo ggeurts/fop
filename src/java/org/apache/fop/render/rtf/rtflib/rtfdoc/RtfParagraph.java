@@ -27,10 +27,8 @@ package org.apache.fop.render.rtf.rtflib.rtfdoc;
  */
 
 import java.io.IOException;
-import java.io.Writer;
 import java.util.List;
 
-import org.apache.fop.apps.FOPException;
 
 /**
  * <p>Model of an RTF paragraph, which can contain RTF text elements.</p>
@@ -65,13 +63,13 @@ implements IRtfTextContainer, IRtfPageBreakContainer, IRtfHyperLinkContainer,
     private static final String[] PARA_ATTRIBUTES = {"intbl"};
 
     /** Create an RTF paragraph as a child of given container with default attributes */
-    RtfParagraph(IRtfParagraphContainer parent, RtfWriter w) throws IOException {
-        super((RtfContainer)parent, w);
+    RtfParagraph(IRtfParagraphContainer parent) throws IOException {
+        super((RtfContainer)parent);
     }
 
     /** Create an RTF paragraph as a child of given container with given attributes */
-    RtfParagraph(IRtfParagraphContainer parent, RtfWriter w, RtfAttributes attr) throws IOException {
-        super((RtfContainer)parent, w, attr);
+    RtfParagraph(IRtfParagraphContainer parent, RtfAttributes attr) throws IOException {
+        super((RtfContainer)parent, attr);
     }
 
     /**
@@ -94,13 +92,13 @@ implements IRtfTextContainer, IRtfPageBreakContainer, IRtfHyperLinkContainer,
 
     /**
      * Overridden to write our attributes before our content
-     * @throws IOException for I/O problems
+    /* {@inheritDoc}
      */
-    protected void writeRtfPrefix() throws IOException {
+    protected void writeRtfPrefix(RtfWriter w) throws IOException {
 
         //Reset paragraph properties if needed
            if (resetProperties) {
-               writeControlWord("pard");
+               w.writeControlWord("pard");
            }
 
         /*
@@ -108,22 +106,22 @@ implements IRtfTextContainer, IRtfPageBreakContainer, IRtfHyperLinkContainer,
          * handled by RtfText." However, the text attributes appear to be
          * relevant to paragraphs as well.
          */
-        writeAttributes(attrib, RtfText.ATTR_NAMES);
-        writeAttributes(attrib, PARA_ATTRIBUTES);
+        w.writeAttributes(attrib, RtfText.ATTR_NAMES);
+        w.writeAttributes(attrib, PARA_ATTRIBUTES);
         // Added by Normand Masse
         // Write alignment attributes after \intbl for cells
         if (attrib.isSet("intbl") && mustWriteAttributes()) {
-            writeAttributes(attrib, RtfText.ALIGNMENT);
+            w.writeAttributes(attrib, RtfText.ALIGNMENT);
         }
 
         //Set keepn if needed (Keep paragraph with the next paragraph)
         if (keepn) {
-            writeControlWord("keepn");
+            w.writeControlWord("keepn");
         }
 
         // start a group for this paragraph and write our own attributes if needed
         if (mustWriteGroupMark()) {
-            writeGroupMark(true);
+            w.writeGroupMark(true);
         }
 
 
@@ -132,35 +130,35 @@ implements IRtfTextContainer, IRtfPageBreakContainer, IRtfHyperLinkContainer,
             // Added by Normand Masse
             // If \intbl then attributes have already been written (see higher in method)
             if (!attrib.isSet("intbl")) {
-                writeAttributes(attrib, RtfText.ALIGNMENT);
+                w.writeAttributes(attrib, RtfText.ALIGNMENT);
             }
             //this line added by Chris Scott, Westinghouse
-            writeAttributes(attrib, RtfText.BORDER);
-            writeAttributes(attrib, RtfText.INDENT);
-            writeAttributes(attrib, RtfText.TABS);
+            w.writeAttributes(attrib, RtfText.BORDER);
+            w.writeAttributes(attrib, RtfText.INDENT);
+            w.writeAttributes(attrib, RtfText.TABS);
             if (writeForBreak) {
-                writeControlWord("pard\\par");
+                w.writeControlWord("pard\\par");
             }
         }
-
     }
 
     /**
      * Overridden to close paragraph
+     * @param w the value of w
      * @throws IOException for I/O problems
      */
-    protected void writeRtfSuffix() throws IOException {
+    protected void writeRtfSuffix(RtfWriter w) throws IOException {
         // sometimes the end of paragraph mark must be suppressed in table cells
         boolean writeMark = true;
         if (parent instanceof RtfTableCell) {
             writeMark = ((RtfTableCell)parent).paragraphNeedsPar(this);
         }
         if (writeMark) {
-            writeControlWord("par");
+            w.writeControlWord("par");
         }
 
         if (mustWriteGroupMark()) {
-            writeGroupMark(false);
+            w.writeGroupMark(false);
         }
 
 
@@ -185,7 +183,7 @@ implements IRtfTextContainer, IRtfPageBreakContainer, IRtfHyperLinkContainer,
      */
     public RtfText newText(String str, RtfAttributes attr) throws IOException {
         closeAll();
-        text = new RtfText(this, writer, str, attr);
+        text = new RtfText(this, str, attr);
         return text;
     }
 
@@ -195,7 +193,7 @@ implements IRtfTextContainer, IRtfPageBreakContainer, IRtfHyperLinkContainer,
      */
     public void newPageBreak() throws IOException {
         writeForBreak = true;
-        new RtfPageBreak(this, writer);
+        new RtfPageBreak(this);
     }
 
     /**
@@ -203,7 +201,7 @@ implements IRtfTextContainer, IRtfPageBreakContainer, IRtfHyperLinkContainer,
      * @throws IOException for I/O problems
      */
     public void newLineBreak() throws IOException {
-        new RtfLineBreak(this, writer);
+        new RtfLineBreak(this);
     }
 
     /**
@@ -212,7 +210,7 @@ implements IRtfTextContainer, IRtfPageBreakContainer, IRtfHyperLinkContainer,
      * @throws IOException for I/O problems
      */
     public RtfPageNumber newPageNumber()throws IOException {
-        pageNumber = new RtfPageNumber(this, writer);
+        pageNumber = new RtfPageNumber(this);
         return pageNumber;
     }
 
@@ -223,7 +221,7 @@ implements IRtfTextContainer, IRtfPageBreakContainer, IRtfHyperLinkContainer,
      * @throws IOException for I/O problems
      */
     public RtfPageNumberCitation newPageNumberCitation(String id) throws IOException {
-       pageNumberCitation = new RtfPageNumberCitation(this, writer, id);
+       pageNumberCitation = new RtfPageNumberCitation(this, id);
        return pageNumberCitation;
     }
 
@@ -235,7 +233,7 @@ implements IRtfTextContainer, IRtfPageBreakContainer, IRtfHyperLinkContainer,
      * @throws IOException for I/O problems
      */
     public RtfHyperLink newHyperLink(String str, RtfAttributes attr) throws IOException {
-        hyperlink = new RtfHyperLink(this, writer, str, attr);
+        hyperlink = new RtfHyperLink(this, str, attr);
         return hyperlink;
     }
 
@@ -246,7 +244,7 @@ implements IRtfTextContainer, IRtfPageBreakContainer, IRtfHyperLinkContainer,
      */
     public RtfExternalGraphic newImage() throws IOException {
         closeAll();
-        externalGraphic = new RtfExternalGraphic(this, writer);
+        externalGraphic = new RtfExternalGraphic(this);
         return externalGraphic;
     }
 

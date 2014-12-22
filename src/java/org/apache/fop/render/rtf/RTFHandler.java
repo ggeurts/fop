@@ -229,28 +229,30 @@ public class RTFHandler extends FOEventHandler {
                 return;
             }
 
-            sect = docArea.newSection();
-
             //read page size and margins, if specified
             //only simple-page-master supported, so pagemaster may be null
             if (pagemaster != null) {
-                sect.getRtfAttributes().set(
-                    PageAttributesConverter.convertPageAttributes(
-                            pagemaster));
+                // TODO: only set document properties once
+                docArea.getRtfAttributes().set(
+                        PageAttributesConverter.convertPageAttributes(
+                                pagemaster));
             } else {
                 RTFEventProducer eventProducer = RTFEventProducer.Provider.get(
                         getUserAgent().getEventBroadcaster());
                 eventProducer.noSPMFound(this, pageSeq.getLocator());
             }
 
+            sect = docArea.newSection();
+            // Configure section page sizes and columns
+            
             builderContext.pushContainer(sect);
 
             //Calculate usable page width for this flow
             int useAblePageWidth = pagemaster.getPageWidth().getValue()
                 - pagemaster.getCommonMarginBlock().marginLeft.getValue()
                 - pagemaster.getCommonMarginBlock().marginRight.getValue()
-                - sect.getRtfAttributes().getValueAsInteger(RtfPage.MARGIN_LEFT).intValue()
-                - sect.getRtfAttributes().getValueAsInteger(RtfPage.MARGIN_RIGHT).intValue();
+                - docArea.getRtfAttributes().getValueAsInteger(RtfPage.MARGIN_LEFT).intValue()
+                - docArea.getRtfAttributes().getValueAsInteger(RtfPage.MARGIN_RIGHT).intValue();
             percentManager.setDimension(pageSeq, useAblePageWidth);
 
             bHeaderSpecified = false;

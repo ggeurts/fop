@@ -27,7 +27,6 @@ package org.apache.fop.render.rtf.rtflib.rtfdoc;
  */
 
 import java.io.IOException;
-import java.io.Writer;
 
 /** The opposite of RtfAfter */
 public class RtfBefore extends RtfAfterBeforeBase {
@@ -39,15 +38,12 @@ public class RtfBefore extends RtfAfterBeforeBase {
         HEADER
     };
 
-    RtfBefore(RtfSection parent, RtfWriter w, RtfAttributes attrs) throws IOException {
-        super(parent, w, attrs);
+    RtfBefore(RtfSection parent, RtfAttributes attrs) throws IOException {
+        super(parent, attrs);
     }
 
-    /**
-     * Write the attributes for this element
-     * @throws IOException for I/O problems
-     */
-    protected void writeMyAttributes() throws IOException {
-        writeAttributes(attrib, HEADER_ATTR);
+    /** {@inheritDoc} */
+    protected void writeMyAttributes(RtfWriter w) throws IOException {
+        w.writeAttributes(attrib, HEADER_ATTR);
     }
 }

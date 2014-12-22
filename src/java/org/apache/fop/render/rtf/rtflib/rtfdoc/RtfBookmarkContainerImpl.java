@@ -54,12 +54,11 @@ public class RtfBookmarkContainerImpl extends RtfContainer implements IRtfBookma
      * Create an RTF container as a child of given container.
      *
      * @param parent The parent container
-     * @param w Writer
      *
      * @exception IOException On error
      */
-    RtfBookmarkContainerImpl(RtfContainer parent, RtfWriter w) throws IOException {
-        super(parent, w, null);
+    RtfBookmarkContainerImpl(RtfContainer parent) throws IOException {
+        super(parent, null);
     }
 
     /**
@@ -67,14 +66,13 @@ public class RtfBookmarkContainerImpl extends RtfContainer implements IRtfBookma
      * Create an RTF container as a child of given container.
      *
      * @param parent The parent container
-     * @param w Writer
      * @param attr Rtf attributes
      *
      * @exception IOException On error
      */
-    RtfBookmarkContainerImpl(RtfContainer parent, RtfWriter w, RtfAttributes attr) throws IOException
+    RtfBookmarkContainerImpl(RtfContainer parent, RtfAttributes attr) throws IOException
     {
-        super(parent, w, attr);
+        super(parent, attr);
     }
 
 
@@ -89,14 +87,14 @@ public class RtfBookmarkContainerImpl extends RtfContainer implements IRtfBookma
      *
      * @return RTF bookmark
      *
-     * @throws IOException On eror
+     * @throws IOException On error
      */
     public RtfBookmark newBookmark(String bookmark) throws IOException {
         if (mBookmark != null) {
             mBookmark.close();
         }
 
-        mBookmark = new RtfBookmark(this, writer, bookmark);
+        mBookmark = new RtfBookmark(this, bookmark);
 
         return mBookmark;
     }

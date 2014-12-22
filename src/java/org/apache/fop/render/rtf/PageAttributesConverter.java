@@ -49,7 +49,7 @@ final class PageAttributesConverter {
      */
     private PageAttributesConverter() {
     }
-
+    
     /** convert xsl:fo attributes to RTF text attributes */
     static RtfAttributes convertPageAttributes(SimplePageMaster pagemaster) {
         FOPRtfAttributes attrib = new FOPRtfAttributes();

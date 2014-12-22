@@ -27,7 +27,6 @@ package org.apache.fop.render.rtf.rtflib.rtfdoc;
  */
 
 import java.io.IOException;
-import java.io.Writer;
 
 /**
  * <p>Page number container.</p>
@@ -49,50 +48,36 @@ public class RtfPageNumber extends RtfContainer {
     public static final String RTF_FIELD_RESULT = "fldrslt";
 
     /** Create an RTF paragraph as a child of given container with default attributes */
-    RtfPageNumber(IRtfPageNumberContainer parent, RtfWriter w) throws IOException {
-        super((RtfContainer)parent, w);
+    RtfPageNumber(IRtfPageNumberContainer parent) throws IOException {
+        super((RtfContainer)parent);
     }
 
     /** Create an RTF page number as a child of given container with given attributes */
-     RtfPageNumber(RtfContainer parent, RtfWriter w, RtfAttributes attrs) throws IOException {
+     RtfPageNumber(RtfContainer parent, RtfAttributes attrs) throws IOException {
          // Adds the attributes of the parent paragraph
-         super(parent, w, attrs);
+         super(parent, attrs);
      }
 
     /** Create an RTF page number as a child of given paragraph,
      *  copying the paragraph attributes
      */
-     RtfPageNumber(RtfParagraph parent, RtfWriter w) throws IOException {
+     RtfPageNumber(RtfParagraph parent) throws IOException {
          // Adds the attributes of the parent paragraph
-         super((RtfContainer)parent, w, parent.attrib);
+         super((RtfContainer)parent, parent.attrib);
 
          // copy parent's text attributes
-         if (parent.getTextAttributes() != null) {
-             attrib.set(parent.getTextAttributes());
+         RtfAttributes textAttr = parent.getTextAttributes();
+         if (textAttr != null) {
+             attrib.set(textAttr);
          }
      }
 
-    /**
-     * Write our attributes and content
-     * @throws IOException for I/O problems
-     */
-    protected void writeRtfContent() throws IOException {
-        /*
-        writeGroupMark(true);
-        writeControlWord(RTF_FIELD);
-        writeGroupMark(true);
-        writeAttributes(attrib, RtfText.ATTR_NAMES); // Added by Boris Poudérous
-        writeStarControlWord(RTF_FIELD_PAGE);
-        writeGroupMark(false);
-        writeGroupMark(true);
-        writeControlWord(RTF_FIELD_RESULT);
-        writeGroupMark(false);
-        writeGroupMark(false);
-        */
-        writeGroupMark(true);
-        writeAttributes(attrib, RtfText.ATTR_NAMES);
-        writeControlWord("chpgn");
-        writeGroupMark(false);
+    /** {@inheritDoc} */
+    protected void writeRtfContent(RtfWriter w) throws IOException {
+        w.writeGroupMark(true);
+        w.writeAttributes(attrib, RtfText.ATTR_NAMES);
+        w.writeControlWord("chpgn");
+        w.writeGroupMark(false);
     }
 
     /**

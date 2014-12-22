@@ -27,7 +27,6 @@ package org.apache.fop.render.rtf.rtflib.rtfdoc;
  */
 
 import java.io.IOException;
-import java.io.Writer;
 import java.util.Iterator;
 
 /**
@@ -42,8 +41,8 @@ public class RtfJforCmd extends RtfContainer {
 
 
 
-    RtfJforCmd(RtfContainer parent, RtfWriter w, RtfAttributes attrs) throws IOException {
-        super(parent, w);
+    RtfJforCmd(RtfContainer parent, RtfAttributes attrs) throws IOException {
+        super(parent);
         attrib = attrs;
     }
 

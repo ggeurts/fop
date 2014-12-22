@@ -40,7 +40,7 @@ public final class RtfFontManager {
     // @@ Members
     //////////////////////////////////////////////////
 
-    /** Singelton instance */
+    /** Singleton instance */
     private static RtfFontManager instance = new RtfFontManager();
 
     /** Index table for the fonts */
@@ -64,7 +64,7 @@ public final class RtfFontManager {
     }
 
     /**
-     * Singelton.
+     * Singleton.
      *
      * @return The instance of RtfFontManager
      */
@@ -131,32 +131,32 @@ public final class RtfFontManager {
     /**
      * Writes the font table in the header.
      *
-     * @param header The header container to write in
+     * @param The {@link RtfWriter} to write to
      *
      * @throws IOException On error
      */
-    public void writeFonts(RtfHeader header) throws IOException {
+    public void writeFonts(RtfWriter w) throws IOException {
         if (fontTable == null || fontTable.size() == 0) {
             return;
         }
 
-        header.newLine();
-        header.writeGroupMark(true);
-        header.writeControlWord("fonttbl");
+        w.newLine();
+        w.writeGroupMark(true);
+        w.writeControlWord("fonttbl");
 
         int len = fontTable.size();
 
         for (int i = 0; i < len; i++) {
-            header.writeGroupMark(true);
-            header.newLine();
-            header.writeControlWord("f", i);
-            header.write((String)fontTable.elementAt(i));
-            header.write(";");
-            header.writeGroupMark(false);
+            w.writeGroupMark(true);
+            w.newLine();
+            w.writeControlWord("f", i);
+            w.write((String)fontTable.elementAt(i));
+            w.write(";");
+            w.writeGroupMark(false);
         }
 
-        header.newLine();
-        header.writeGroupMark(false);
+        w.newLine();
+        w.writeGroupMark(false);
     }
 
 

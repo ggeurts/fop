@@ -172,37 +172,37 @@ public final class RtfColorTable {
     /**
      * Writes the color table in the header.
      *
-     * @param header The header container to write in
+     * @param w The {@link RtfWriter} to write to
      *
      * @throws IOException On error
      */
-    public void writeColors(RtfHeader header) throws IOException {
+    public void writeColors(RtfWriter w) throws IOException {
         if (colorTable == null || colorTable.size() == 0) {
             return;
         }
 
-        header.newLine();
-        header.writeGroupMark(true);
+        w.newLine();
+        w.writeGroupMark(true);
         //Don't use writeControlWord, because it appends a blank,
         //which may confuse Wordpad.
         //This also implicitly writes the first color (=index 0), which
         //is reserved for auto-colored.
-        header.writeControlWord("colortbl;");
+        w.writeControlWord("colortbl;");
 
         int len = colorTable.size();
 
         for (int i = 0; i < len; i++) {
             int identifier = ((Integer) colorTable.get(i)).intValue();
 
-            header.newLine();
-            header.writeControlWord("red", determineColorLevel(identifier, RED));
-            header.writeControlWord("green", determineColorLevel(identifier, GREEN));
-            header.writeControlWord("blue", determineColorLevel(identifier, BLUE));
-            header.write(";");
+            w.newLine();
+            w.writeControlWord("red", determineColorLevel(identifier, RED));
+            w.writeControlWord("green", determineColorLevel(identifier, GREEN));
+            w.writeControlWord("blue", determineColorLevel(identifier, BLUE));
+            w.write(";");
         }
 
-        header.newLine();
-        header.writeGroupMark(false);
+        w.newLine();
+        w.writeGroupMark(false);
     }
 
 

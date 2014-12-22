@@ -61,28 +61,26 @@ implements IRtfTextContainer,
      * A constructor.
      *
      * @param parent a <code>RtfContainer</code> value
-     * @param writer a <code>Writer</code> value
      * @param str text of the link
      * @param attr a <code>RtfAttributes</code> value
      * @throws IOException for I/O problems
      */
-    public RtfHyperLink(IRtfTextContainer parent, RtfWriter writer, String str, RtfAttributes attr)
-        throws IOException {
-        super((RtfContainer) parent, writer, attr);
-        new RtfText(this, writer, str, attr);
+    public RtfHyperLink(IRtfTextContainer parent, String str, RtfAttributes attr)
+    throws IOException {
+        super((RtfContainer) parent, attr);
+        new RtfText(this, str, attr);
     }
 
     /**
      * A constructor.
      *
      * @param parent a <code>RtfContainer</code> value
-     * @param writer a <code>Writer</code> value
      * @param attr a <code>RtfAttributes</code> value
      * @throws IOException for I/O problems
      */
-    public RtfHyperLink(RtfTextrun parent, RtfWriter writer, RtfAttributes attr)
-        throws IOException {
-        super((RtfContainer) parent, writer, attr);
+    public RtfHyperLink(RtfTextrun parent, RtfAttributes attr)
+    throws IOException {
+        super((RtfContainer) parent, attr);
     }
 
 
@@ -90,44 +88,36 @@ implements IRtfTextContainer,
     // @@ RtfElement implementation
     //////////////////////////////////////////////////
 
-    /**
-     * Writes the RTF content to m_writer.
-     *
-     * @exception IOException On error
-     */
-    public void writeRtfPrefix() throws IOException {
-        super.writeGroupMark(true);
-        super.writeControlWord("field");
+    /** {@inheritDoc} */
+    protected void writeRtfPrefix(RtfWriter w) throws IOException {
+        w.writeGroupMark(true);
+        w.writeControlWord("field");
 
-        super.writeGroupMark(true);
-        super.writeStarControlWord("fldinst");
+        w.writeGroupMark(true);
+        w.writeStarControlWord("fldinst");
 
-        writer.writeRaw("HYPERLINK \"");
-        writer.write(url);
-        writer.writeRaw("\" ");
-        super.writeGroupMark(false);
+        w.writeRaw("HYPERLINK \"");
+        w.write(url);
+        w.writeRaw("\" ");
+        w.writeGroupMark(false);
 
-        super.writeGroupMark(true);
-        super.writeControlWord("fldrslt");
+        w.writeGroupMark(true);
+        w.writeControlWord("fldrslt");
 
         // start a group for this paragraph and write our own attributes if needed
         if (attrib != null && attrib.isSet("cs")) {
-            writeGroupMark(true);
-            writeAttributes(attrib, new String [] {"cs"});
+            w.writeGroupMark(true);
+            w.writeAttributes(attrib, new String [] {"cs"});
         }
     }
 
-    /**
-     * Writes the RTF content to m_writer.
-     *
-     * @exception IOException On error
-     */
-    public void writeRtfSuffix() throws IOException {
+    /** {@inheritDoc} */
+    protected void writeRtfSuffix(RtfWriter w) throws IOException {
         if (attrib != null && attrib.isSet("cs")) {
-            writeGroupMark(false);
+            w.writeGroupMark(false);
         }
-        super.writeGroupMark(false);
-        super.writeGroupMark(false);
+        w.writeGroupMark(false);
+        w.writeGroupMark(false);
     }
 
 
@@ -154,7 +144,7 @@ implements IRtfTextContainer,
      */
     public RtfText newText(String str, RtfAttributes attr) throws IOException {
         closeAll();
-        mText = new RtfText(this, writer, str, attr);
+        mText = new RtfText(this, str, attr);
         return mText;
     }
 
@@ -180,7 +170,7 @@ implements IRtfTextContainer,
      * @throws IOException for I/O problems
      */
     public void newLineBreak() throws IOException {
-        new RtfLineBreak(this, writer);
+        new RtfLineBreak(this);
     }
 
 
@@ -238,7 +228,7 @@ implements IRtfTextContainer,
      * @throws IOException if not caught
      */
     public RtfTextrun getTextrun() throws IOException {
-        RtfTextrun textrun = RtfTextrun.getTextrun(this, writer, null);
+        RtfTextrun textrun = RtfTextrun.getTextrun(this, null);
         return textrun;
     }
 }

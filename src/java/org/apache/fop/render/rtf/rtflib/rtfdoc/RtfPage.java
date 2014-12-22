@@ -27,7 +27,6 @@ package org.apache.fop.render.rtf.rtflib.rtfdoc;
  */
 
 import java.io.IOException;
-import java.io.Writer;
 
 /**
  * <p>Specifies rtf control words.  Is the container for page attributes.
@@ -73,36 +72,28 @@ extends RtfContainer {
 
     /**    RtfPage creates new page attributes with the parent container, the writer
            and the attributes*/
-    RtfPage(RtfPageArea parent, RtfWriter w, RtfAttributes attrs) throws IOException {
-        super((RtfContainer)parent, w);
+    RtfPage(RtfPageArea parent, RtfAttributes attrs) throws IOException {
+        super((RtfContainer)parent);
         attrib = attrs;
     }
 
     /**
-     * RtfPage writes the attributes the attributes contained in the string
-     * PAGE_ATTR, if not null
+     * RtfPage writes the attributes contained in the string PAGE_ATTR, if not null
+     * @param w the value of w
      * @throws IOException for I/O problems
      */
-    protected void writeRtfContent() throws IOException {
-        writeAttributes(attrib, PAGE_ATTR);
+    protected void writeRtfContent(RtfWriter w) throws IOException {
+        w.writeAttributes(attrib, PAGE_ATTR);
 
         if (attrib != null) {
             Object widthRaw = attrib.getValue(PAGE_WIDTH);
             Object heightRaw = attrib.getValue(PAGE_HEIGHT);
 
             if ((widthRaw instanceof Integer) && (heightRaw instanceof Integer)
-                    && ((Integer) widthRaw).intValue() > ((Integer) heightRaw).intValue()) {
-                writeControlWord(LANDSCAPE);
+                    && ((Integer) widthRaw) > ((Integer) heightRaw)) {
+                w.writeControlWord(LANDSCAPE);
             }
         }
-    }
-
-    /**
-     * RtfPage - attributes accessor
-     * @return attributes
-     */
-    public RtfAttributes getAttributes() {
-        return attrib;
     }
 
     /**

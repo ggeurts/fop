@@ -22,6 +22,7 @@ package org.apache.fop.render.rtf.rtflib.rtfdoc;
 //Java
 import java.io.IOException;
 import java.io.Writer;
+import java.util.Iterator;
 
 /**
  * <p>Class that wraps a {@link Writer} with group,control-word, and 
@@ -218,6 +219,78 @@ public final class RtfWriter
         } 
     }
 
+    /**
+     * Write given attribute values to our Writer
+     * @param attr RtfAttributes to be written
+     * @param nameList if given, only attribute names from this list are considered
+     * @throws IOException for I/O problems
+     */
+    public void writeAttributes(RtfAttributes attr, String[] nameList)
+    throws IOException {
+        if (attr == null) {
+            return;
+        }
+
+        if (nameList != null) {
+            // process only given attribute names
+            for (int i = 0; i < nameList.length; i++) {
+                final String name = nameList[i];
+                if (attr.isSet(name)) {
+                    writeOneAttribute(name, attr.getValue(name));
+                }
+            }
+        } else {
+            // process all defined attributes
+            for (Iterator it = attr.nameIterator(); it.hasNext();) {
+                final String name = (String)it.next();
+                if (attr.isSet(name)) {
+                    writeOneAttribute(name, attr.getValue(name));
+                }
+            }
+        }
+    }
+    
+    /**
+     * Write one attribute to our Writer
+     * @param name name of attribute to write
+     * @param value value of attribute to be written
+     * @throws IOException for I/O problems
+     */
+    public void writeOneAttribute(String name, Object value)
+    throws IOException {
+        if (value instanceof Integer) {
+            writeControlWord(name, (Integer) value);
+        } else if (value instanceof String) {
+            writeControlWord(name + (String)value);
+        } else if (value instanceof RtfAttributes) {
+            writeControlWord(name);
+            writeAttributes((RtfAttributes) value, null);
+        } else {
+            writeControlWord(name);
+        }
+    }
+    
+    /**
+     * Make a visible entry in the RTF for an exception
+     * @param ie Exception to flag
+     * @throws IOException for I/O problems
+     */
+    public void writeException(Exception ie)
+    throws IOException {
+        writeGroupMark(true);
+        writeControlWord("par");
+
+        // make the exception message stand out so that the problem is visible
+        writeControlWord("fs48");
+        write(ie.getClass().getName());
+
+        writeControlWord("fs20");
+        write(ie.toString());
+
+        writeControlWord("par");
+        writeGroupMark(false);
+    }
+    
     /**
      * Write given String as is.
      * @param str String to be written

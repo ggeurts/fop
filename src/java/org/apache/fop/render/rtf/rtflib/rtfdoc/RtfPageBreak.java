@@ -27,7 +27,6 @@ package org.apache.fop.render.rtf.rtflib.rtfdoc;
  */
 
 import java.io.IOException;
-import java.io.Writer;
 
 /**
  * <p>Model of an RTF page break.</p>
@@ -37,16 +36,17 @@ import java.io.Writer;
 
 public class RtfPageBreak extends RtfElement {
     /** Create an RTF paragraph as a child of given container with default attributes */
-    RtfPageBreak(IRtfPageBreakContainer parent, RtfWriter w) throws IOException {
-        super((RtfContainer)parent, w);
+    RtfPageBreak(IRtfPageBreakContainer parent) throws IOException {
+        super((RtfContainer)parent);
     }
 
     /**
      * Overridden to write our attributes before our content
+     * @param w the value of w
      * @throws IOException for I/O problems
      */
-    protected void writeRtfContent() throws IOException {
-        writeControlWord("page");
+    protected void writeRtfContent(RtfWriter w) throws IOException {
+        w.writeControlWord("page");
     }
 
     /**

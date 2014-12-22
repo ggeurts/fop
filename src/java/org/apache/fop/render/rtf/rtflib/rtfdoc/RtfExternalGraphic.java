@@ -29,7 +29,6 @@ package org.apache.fop.render.rtf.rtflib.rtfdoc;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.Writer;
 import java.net.MalformedURLException;
 import java.net.URL;
 
@@ -297,24 +296,23 @@ public class RtfExternalGraphic extends RtfElement {
      * Create an RTF element as a child of given container.
      *
      * @param container a <code>RtfContainer</code> value
-     * @param writer a <code>Writer</code> value
      * @throws IOException for I/O problems
      */
-    public RtfExternalGraphic(RtfContainer container, RtfWriter writer) throws IOException {
-        super(container, writer);
+    public RtfExternalGraphic(RtfContainer container)
+    throws IOException {
+        super(container);
     }
 
     /**
      * Default constructor.
      *
      * @param container a <code>RtfContainer</code> value
-     * @param writer a <code>Writer</code> value
      * @param attributes a <code>RtfAttributes</code> value
      * @throws IOException for I/O problems
      */
-    public RtfExternalGraphic(RtfContainer container, RtfWriter writer,
-    RtfAttributes attributes) throws IOException {
-        super(container, writer, attributes);
+    public RtfExternalGraphic(RtfContainer container, RtfAttributes attributes) 
+    throws IOException {
+        super(container, attributes);
     }
 
 
@@ -325,13 +323,14 @@ public class RtfExternalGraphic extends RtfElement {
         /**
          * RtfElement override - catches ExternalGraphicException and writes a warning
          * message to the document if image cannot be read
+     * @param w the value of w
          * @throws IOException for I/O problems
          */
-    protected void writeRtfContent() throws IOException {
+    protected void writeRtfContent(RtfWriter w) throws IOException {
         try {
-            writeRtfContentWithException();
+            writeRtfContentWithException(w);
         } catch (ExternalGraphicException ie) {
-            writeExceptionInRtf(ie);
+            w.writeException(ie);
         }
     }
 
@@ -340,12 +339,11 @@ public class RtfExternalGraphic extends RtfElement {
      *
      * @exception IOException On error
      */
-    protected void writeRtfContentWithException() throws IOException {
+    protected void writeRtfContentWithException(RtfWriter w) throws IOException {
 
-        if (writer == null) {
+        if (w == null) {
             return;
         }
-
 
         if (url == null && imagedata == null) {
             throw new ExternalGraphicException(
@@ -354,16 +352,13 @@ public class RtfExternalGraphic extends RtfElement {
 
         String linkToRoot = System.getProperty("jfor_link_to_root");
         if (url != null && linkToRoot != null) {
-            writer.writeRaw("{\\field {\\* \\fldinst { INCLUDEPICTURE \"");
-            writer.write(linkToRoot);
+            w.writeRaw("{\\field {\\* \\fldinst { INCLUDEPICTURE \"");
+            w.write(linkToRoot);
             File urlFile = new File(url.getFile());
-            writer.write(urlFile.getName());
-            writer.writeRaw("\" \\\\* MERGEFORMAT \\\\d }}}");
+            w.write(urlFile.getName());
+            w.writeRaw("\" \\\\* MERGEFORMAT \\\\d }}}");
             return;
         }
-
-//        getRtfFile ().getLog ().logInfo ("Writing image '" + url + "'.");
-
 
         if (imagedata == null) {
             try {
@@ -401,23 +396,22 @@ public class RtfExternalGraphic extends RtfElement {
         }
 
         // Writes the beginning of the rtf image
+        w.writeGroupMark(true);
+        w.writeStarControlWord("shppict");
+        w.writeGroupMark(true);
+        w.writeControlWord("pict");
 
-        writeGroupMark(true);
-        writeStarControlWord("shppict");
-        writeGroupMark(true);
-        writeControlWord("pict");
-
-        writeControlWord(imageformat.getRtfTag());
+        w.writeControlWord(imageformat.getRtfTag());
 
         computeImageSize();
-        writeSizeInfo();
-        writeAttributes(getRtfAttributes(), null);
+        writeSizeInfo(w);
+        w.writeAttributes(getRtfAttributes(), null);
 
-        writer.write(imagedata);
+        w.write(imagedata);
 
         // Writes the end of RTF image
-        writeGroupMark(false);
-        writeGroupMark(false);
+        w.writeGroupMark(false);
+        w.writeGroupMark(false);
     }
 
     private void computeImageSize() {
@@ -464,58 +458,58 @@ public class RtfExternalGraphic extends RtfElement {
         }
     }
 
-    private void writeSizeInfo() throws IOException {
+    private void writeSizeInfo(RtfWriter w) throws IOException {
         // Set image size
         if (width != -1) {
-            writeControlWord("picw" + width);
+            w.writeControlWord("picw" + width);
         }
         if (height != -1) {
-            writeControlWord("pich" + height);
+            w.writeControlWord("pich" + height);
         }
 
         if (widthDesired != -1) {
             if (perCentW) {
-                writeControlWord("picscalex" + widthDesired);
+                w.writeControlWord("picscalex" + widthDesired);
             } else {
                 //writeControlWord("picscalex" + widthDesired * 100 / width);
-                writeControlWord("picwgoal" + widthDesired);
+                w.writeControlWord("picwgoal" + widthDesired);
             }
 
         } else if (scaleUniform && heightDesired != -1) {
             if (perCentH) {
-                writeControlWord("picscalex" + heightDesired);
+                w.writeControlWord("picscalex" + heightDesired);
             } else {
-                writeControlWord("picscalex" + heightDesired * 100 / height);
+                w.writeControlWord("picscalex" + heightDesired * 100 / height);
             }
         }
 
         if (heightDesired != -1) {
             if (perCentH) {
-                writeControlWord("picscaley" + heightDesired);
+                w.writeControlWord("picscaley" + heightDesired);
             } else {
                 //writeControlWord("picscaley" + heightDesired * 100 / height);
-                writeControlWord("pichgoal" + heightDesired);
+                w.writeControlWord("pichgoal" + heightDesired);
             }
 
         } else if (scaleUniform && widthDesired != -1) {
             if (perCentW) {
-                writeControlWord("picscaley" + widthDesired);
+                w.writeControlWord("picscaley" + widthDesired);
             } else {
-                writeControlWord("picscaley" + widthDesired * 100 / width);
+                w.writeControlWord("picscaley" + widthDesired * 100 / width);
             }
         }
 
         if (this.cropValues[0] != 0) {
-            writeOneAttribute("piccropl", new Integer(this.cropValues[0]));
+            w.writeOneAttribute("piccropl", new Integer(this.cropValues[0]));
         }
         if (this.cropValues[1] != 0) {
-            writeOneAttribute("piccropt", new Integer(this.cropValues[1]));
+            w.writeOneAttribute("piccropt", new Integer(this.cropValues[1]));
         }
         if (this.cropValues[2] != 0) {
-            writeOneAttribute("piccropr", new Integer(this.cropValues[2]));
+            w.writeOneAttribute("piccropr", new Integer(this.cropValues[2]));
         }
         if (this.cropValues[3] != 0) {
-            writeOneAttribute("piccropb", new Integer(this.cropValues[3]));
+            w.writeOneAttribute("piccropb", new Integer(this.cropValues[3]));
         }
     }
 

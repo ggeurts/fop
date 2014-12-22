@@ -27,7 +27,6 @@ package org.apache.fop.render.rtf.rtflib.rtfdoc;
  */
 
 import java.io.IOException;
-import java.io.Writer;
 
 /**
  * <p>Model of an RTF list item, which can contain RTF paragraphs.</p>
@@ -52,12 +51,12 @@ public class RtfListItem extends RtfContainer
 
         RtfListItemParagraph(RtfListItem rli, RtfAttributes attrs)
         throws IOException {
-            super(rli, rli.writer, attrs);
+            super(rli, attrs);
         }
 
-        protected void writeRtfPrefix() throws IOException {
-            super.writeRtfPrefix();
-            getRtfListStyle().writeParagraphPrefix(this);
+        protected void writeRtfPrefix(RtfWriter w) throws IOException {
+            super.writeRtfPrefix(w);
+            getRtfListStyle().writeParagraphPrefix(w);
         }
     }
 
@@ -74,7 +73,7 @@ public class RtfListItem extends RtfContainer
          * @throws IOException Thrown when an IO-problem occurs
          */
         public RtfListItemLabel(RtfListItem item) throws IOException {
-            super(null, item.writer, null);
+            super(null, null);
 
             rtfListItem = item;
         }
@@ -106,8 +105,8 @@ public class RtfListItem extends RtfContainer
     }
 
     /** Create an RTF list item as a child of given container with default attributes */
-    RtfListItem(RtfList parent, RtfWriter w) throws IOException {
-        super((RtfContainer)parent, w);
+    RtfListItem(RtfList parent) throws IOException {
+        super((RtfContainer)parent);
         parentList = parent;
     }
 
@@ -135,8 +134,8 @@ public class RtfListItem extends RtfContainer
     }
 
     /** Create an RTF list item as a child of given container with given attributes */
-    RtfListItem(RtfList parent, RtfWriter w, RtfAttributes attr) throws IOException {
-        super((RtfContainer)parent, w, attr);
+    RtfListItem(RtfList parent, RtfAttributes attr) throws IOException {
+        super((RtfContainer)parent, attr);
         parentList = parent;
     }
 
@@ -147,7 +146,7 @@ public class RtfListItem extends RtfContainer
      * @throws IOException Thrown when an IO-problem occurs
      */
     public RtfTextrun getTextrun() throws IOException {
-        RtfTextrun textrun = RtfTextrun.getTextrun(this, writer, null);
+        RtfTextrun textrun = RtfTextrun.getTextrun(this, null);
         textrun.setRtfListItem(this);
         return textrun;
     }
@@ -159,54 +158,51 @@ public class RtfListItem extends RtfContainer
      * @throws IOException for I/O problems
      */
     public RtfList newList(RtfAttributes attrs) throws IOException {
-        RtfList list = new RtfList(this, writer, attrs);
+        RtfList list = new RtfList(this, attrs);
         return list;
     }
 
-    /**
-     * Overridden to setup the list: start a group with appropriate attributes
-     * @throws IOException for I/O problems
+    /** {@inheritDoc} 
+     * Overridden to setup the list: start a group with appropriate attributes.
      */
-    protected void writeRtfPrefix() throws IOException {
+    protected void writeRtfPrefix(RtfWriter w) throws IOException {
 
         // pard causes word97 (and sometimes 2000 too) to crash if the list is nested in a table
         if (!parentList.getHasTableParent()) {
-            writeControlWord("pard");
+            w.writeControlWord("pard");
         }
 
-        writeOneAttribute(RtfText.LEFT_INDENT_FIRST,
+        w.writeOneAttribute(RtfText.LEFT_INDENT_FIRST,
                 "360"); //attrib.getValue(RtfListTable.LIST_INDENT));
 
-        writeOneAttribute(RtfText.LEFT_INDENT_BODY,
+        w.writeOneAttribute(RtfText.LEFT_INDENT_BODY,
                 attrib.getValue(RtfText.LEFT_INDENT_BODY));
 
         // group for list setup info
-        writeGroupMark(true);
+        w.writeGroupMark(true);
 
-        writeStarControlWord("pn");
+        w.writeStarControlWord("pn");
         //Modified by Chris Scott
         //fixes second line indentation
-        getRtfListStyle().writeListPrefix(this);
+        getRtfListStyle().writeListPrefix(w, this);
 
-        writeGroupMark(false);
-        writeOneAttribute(RtfListTable.LIST_NUMBER, new Integer(number));
+        w.writeGroupMark(false);
+        w.writeOneAttribute(RtfListTable.LIST_NUMBER, new Integer(number));
     }
 
-    /**
+    /** {@inheritDoc}
      * End the list group
-     * @throws IOException for I/O problems
      */
-    protected void writeRtfSuffix() throws IOException {
-        super.writeRtfSuffix();
+    protected void writeRtfSuffix(RtfWriter w) throws IOException {
+        super.writeRtfSuffix(w);
 
         /* reset paragraph defaults to make sure list ends
          * but pard causes word97 (and sometimes 2000 too) to crash if the list
          * is nested in a table
          */
         if (!parentList.getHasTableParent()) {
-            writeControlWord("pard");
+            w.writeControlWord("pard");
         }
-
     }
 
     /**

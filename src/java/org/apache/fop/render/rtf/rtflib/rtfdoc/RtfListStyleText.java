@@ -43,54 +43,39 @@ public class RtfListStyleText extends RtfListStyle {
         text = s;
     }
 
-    /**
-     * Gets called before a RtfListItem has to be written.
-     * @param item RtfListItem whose prefix has to be written
-     * {@inheritDoc}
-     * @throws IOException Thrown when an IO-problem occurs
-     */
-    public void writeListPrefix(RtfListItem item)
+    /** {@inheritDoc} */
+    public void writeListPrefix(RtfWriter w, RtfListItem item)
     throws IOException {
         // bulleted list
-        item.writeControlWord("pnlvlblt");
-        item.writeControlWord("ilvl0");
-        item.writeOneAttribute(RtfListTable.LIST_NUMBER, item.getNumber());
-        item.writeOneAttribute("pnindent",
+        w.writeControlWord("pnlvlblt");
+        w.writeControlWord("ilvl0");
+        w.writeOneAttribute(RtfListTable.LIST_NUMBER, item.getNumber());
+        w.writeOneAttribute("pnindent",
                 item.getParentList().attrib.getValue(RtfListTable.LIST_INDENT));
-        item.writeControlWord("pnf1");
-        item.writeGroupMark(true);
+        w.writeControlWord("pnf1");
+        w.writeGroupMark(true);
         //item.writeControlWord("pndec");
-        item.writeOneAttribute(RtfListTable.LIST_FONT_TYPE, "2");
-        item.writeControlWord("pntxtb");
-        item.write(text);
-        item.writeGroupMark(false);
+        w.writeOneAttribute(RtfListTable.LIST_FONT_TYPE, "2");
+        w.writeControlWord("pntxtb");
+        w.write(text);
+        w.writeGroupMark(false);
     }
 
-    /**
-     * Gets called before a paragraph, which is contained by a RtfListItem has to be written.
-     *
-     * @param element RtfElement in whose context is to be written
-     * {@inheritDoc}
-     * @throws IOException Thrown when an IO-problem occurs
-     */
-    public void writeParagraphPrefix(RtfElement element)
+    /** {@inheritDoc} */
+    public void writeParagraphPrefix(RtfWriter w)
     throws IOException {
-        element.writeGroupMark(true);
-        element.writeControlWord("pntext");
-        element.writeGroupMark(false);
+        w.writeGroupMark(true);
+        w.writeControlWord("pntext");
+        w.writeGroupMark(false);
     }
 
-    /**
-     * Gets called when the list table has to be written.
-     *
-     * @param element RtfElement in whose context is to be written
-     * {@inheritDoc}
-     * @throws IOException Thrown when an IO-problem occurs
-     */
-    public void writeLevelGroup(RtfElement element)
+    /** {@inheritDoc} */
+    public void writeLevelGroup(RtfWriter w, RtfListTable table)
     throws IOException {
-        element.attrib.set(RtfListTable.LIST_NUMBER_TYPE, 23);
-        element.writeGroupMark(true);
+        table.attrib.set(RtfListTable.LIST_NUMBER_TYPE, 23);
+        table.attrib.set(RtfListTable.LIST_FONT_TYPE, 2);
+
+        w.writeGroupMark(true);
 
         String sCount;
         if (text.length() < 10) {
@@ -101,15 +86,13 @@ public class RtfListStyleText extends RtfListStyle {
                 sCount = "0" + sCount;
             }
         }
-        element.writeControlWord(RtfListTable.LIST_TEXT_FORM);
-        element.writeControlWord("'" + sCount);
-        element.write(text);
-        element.writeGroupMark(false);
+        w.writeControlWord(RtfListTable.LIST_TEXT_FORM);
+        w.writeControlWord("'" + sCount);
+        w.write(text);
+        w.writeGroupMark(false);
 
-        element.writeGroupMark(true);
-        element.writeOneAttribute(RtfListTable.LIST_NUM_POSITION, null);
-        element.writeGroupMark(false);
-
-        element.attrib.set(RtfListTable.LIST_FONT_TYPE, 2);
+        w.writeGroupMark(true);
+        w.writeOneAttribute(RtfListTable.LIST_NUM_POSITION, null);
+        w.writeGroupMark(false);
     }
 }

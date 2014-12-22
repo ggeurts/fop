@@ -27,7 +27,6 @@ package org.apache.fop.render.rtf.rtflib.rtfdoc;
  */
 
 import java.io.IOException;
-import java.io.Writer;
 import java.util.List;
 
 /**
@@ -57,8 +56,8 @@ implements
     private RtfJforCmd jforCmd;
 
     /** Create an RTF container as a child of given container */
-    RtfSection(RtfDocumentArea parent, RtfWriter w) throws IOException {
-        super(parent, w);
+    RtfSection(RtfDocumentArea parent) throws IOException {
+        super(parent);
     }
 
     /**
@@ -68,7 +67,7 @@ implements
      */
     public RtfExternalGraphic newImage() throws IOException {
         closeAll();
-        externalGraphic = new RtfExternalGraphic(this, writer);
+        externalGraphic = new RtfExternalGraphic(this);
         return externalGraphic;
     }
 
@@ -80,7 +79,7 @@ implements
      */
     public RtfParagraph newParagraph(RtfAttributes attrs) throws IOException {
         closeAll();
-        paragraph = new RtfParagraph(this, writer, attrs);
+        paragraph = new RtfParagraph(this, attrs);
         return paragraph;
     }
 
@@ -99,7 +98,7 @@ implements
      * @throws IOException for I/O problems
      */
     public RtfParagraphKeepTogether newParagraphKeepTogether() throws IOException {
-        return new RtfParagraphKeepTogether(this, writer);
+        return new RtfParagraphKeepTogether(this);
     }
 
     /**
@@ -111,7 +110,7 @@ implements
      */
     public RtfTable newTable(ITableColumnsInfo tc) throws IOException {
         closeAll();
-        table = new RtfTable(this, writer, tc);
+        table = new RtfTable(this, tc);
         return table;
     }
 
@@ -125,7 +124,7 @@ implements
      */
     public RtfTable newTable(RtfAttributes attrs, ITableColumnsInfo tc) throws IOException {
         closeAll();
-        table = new RtfTable(this, writer, attrs, tc);
+        table = new RtfTable(this, attrs, tc);
         return table;
     }
 
@@ -137,7 +136,7 @@ implements
      */
     public RtfList newList(RtfAttributes attrs) throws IOException {
         closeAll();
-        list = new RtfList(this, writer, attrs);
+        list = new RtfList(this, attrs);
         return list;
     }
 
@@ -149,7 +148,7 @@ implements
      */
     public RtfBefore newBefore(RtfAttributes attrs) throws IOException {
         closeAll();
-        before = new RtfBefore(this, writer, attrs);
+        before = new RtfBefore(this, attrs);
         return before;
     }
 
@@ -161,7 +160,7 @@ implements
      */
     public RtfAfter newAfter(RtfAttributes attrs) throws IOException {
         closeAll();
-        after = new RtfAfter(this, writer, attrs);
+        after = new RtfAfter(this, attrs);
         return after;
     }
 
@@ -172,31 +171,25 @@ implements
      * @throws IOException for I/O problems
      */
     public RtfJforCmd newJforCmd(RtfAttributes attrs) throws IOException {
-        jforCmd  = new RtfJforCmd(this, writer, attrs);
+        jforCmd  = new RtfJforCmd(this, attrs);
         return jforCmd;
     }
 
 
 
-    /**
-     * Can be overridden to write RTF prefix code, what comes before our children
-     * @throws IOException for I/O problems
-     */
-    protected void writeRtfPrefix() throws IOException {
-        writeAttributes(attrib, RtfPage.PAGE_ATTR);
-        newLine();
-        writeControlWord("sectd");
+    /** {@inheritDoc} */
+    protected void writeRtfPrefix(RtfWriter w) throws IOException {
+        w.writeAttributes(attrib, RtfPage.PAGE_ATTR);
+        w.newLine();
+        w.writeControlWord("sectd");
     }
 
-    /**
-     * Can be overridden to write RTF suffix code, what comes after our children
-     * @throws IOException for I/O problems
-     */
-    protected void writeRtfSuffix() throws IOException {
+    /** {@inheritDoc} */
+    protected void writeRtfSuffix(RtfWriter w) throws IOException {
         // write suffix /sect only if this section is not last section (see bug #51484)
         List siblings = parent.getChildren();
         if ((siblings.indexOf(this) + 1) < siblings.size()) {
-            writeControlWord("sect");
+            w.writeControlWord("sect");
         }
     }
 
@@ -246,6 +239,6 @@ implements
      */
     public RtfTextrun getTextrun()
     throws IOException {
-        return RtfTextrun.getTextrun(this, writer, null);
+        return RtfTextrun.getTextrun(this, null);
     }
 }

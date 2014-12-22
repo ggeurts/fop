@@ -30,23 +30,20 @@ public class RtfGenerator extends RtfElement {
     /**
      * Default constructor for the generator element.
      * @param h a header
-     * @param w a writer
      * @throws IOException if not caught
      */
-    public RtfGenerator(RtfHeader h, RtfWriter w) throws IOException {
-        super(h, w);
+    public RtfGenerator(RtfHeader h) throws IOException {
+        super(h);
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    protected void writeRtfContent() throws IOException {
-        newLine();
-        writeGroupMark(true);
-        writeStarControlWord("generator");
-        writer.write("Apache XML Graphics RTF Library");
-        writer.write(";");
-        writeGroupMark(false);
+    /** {@inheritDoc} */
+    protected void writeRtfContent(RtfWriter w) throws IOException {
+        w.newLine();
+        w.writeGroupMark(true);
+        w.writeStarControlWord("generator");
+        w.write("Apache XML Graphics RTF Library");
+        w.write(';');
+        w.writeGroupMark(false);
     }
 
     /**

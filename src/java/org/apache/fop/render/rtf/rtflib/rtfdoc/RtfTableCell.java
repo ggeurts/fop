@@ -27,7 +27,6 @@ package org.apache.fop.render.rtf.rtflib.rtfdoc;
  */
 
 import java.io.IOException;
-import java.io.Writer;
 import java.util.Iterator;
 
 /**
@@ -75,8 +74,8 @@ public class RtfTableCell
     public static final int MERGE_WITH_PREVIOUS = 2;
 
     /** Create an RTF element as a child of given container */
-    RtfTableCell(RtfTableRow parent, RtfWriter w, int cellWidth, int idNum) throws IOException {
-        super(parent, w);
+    RtfTableCell(RtfTableRow parent, int cellWidth, int idNum) throws IOException {
+        super(parent);
         id = idNum;
         parentRow = parent;
         this.cellWidth = cellWidth;
@@ -86,9 +85,9 @@ public class RtfTableCell
     }
 
     /** Create an RTF element as a child of given container */
-    RtfTableCell(RtfTableRow parent, RtfWriter w, int cellWidth, RtfAttributes attrs,
+    RtfTableCell(RtfTableRow parent, int cellWidth, RtfAttributes attrs,
             int idNum) throws IOException {
-        super(parent, w, attrs);
+        super(parent, attrs);
         id = idNum;
         parentRow = parent;
         this.cellWidth = cellWidth;
@@ -110,7 +109,7 @@ public class RtfTableCell
 
         attrs.set("intbl");
 
-        paragraph = new RtfParagraph(this, writer, attrs);
+        paragraph = new RtfParagraph(this, attrs);
 
         if (paragraph.attrib.isSet("qc")) {
             setCenter = true;
@@ -135,7 +134,7 @@ public class RtfTableCell
      */
     public RtfExternalGraphic newImage() throws IOException {
         closeAll();
-        externalGraphic = new RtfExternalGraphic(this, writer);
+        externalGraphic = new RtfExternalGraphic(this);
         return externalGraphic;
     }
 
@@ -157,7 +156,7 @@ public class RtfTableCell
      */
     public RtfList newList(RtfAttributes attrib) throws IOException {
         closeAll();
-        list = new RtfList(this, writer, attrib);
+        list = new RtfList(this, attrib);
         return list;
     }
 
@@ -169,7 +168,7 @@ public class RtfTableCell
      */
     public RtfTable newTable(ITableColumnsInfo tc) throws IOException {
         closeAll();
-        table = new RtfTable(this, writer, tc);
+        table = new RtfTable(this, tc);
         return table;
     }
 
@@ -183,15 +182,16 @@ public class RtfTableCell
     // Modified by Boris Poudérous on 07/22/2002
     public RtfTable newTable(RtfAttributes attrs, ITableColumnsInfo tc) throws IOException {
         closeAll();
-        table = new RtfTable(this, writer, attrs, tc); // Added tc Boris Poudérous 07/22/2002
+        table = new RtfTable(this, attrs, tc); // Added tc Boris Poudérous 07/22/2002
         return table;
     }
 
     /** used by RtfTableRow to write the <celldef> cell definition control words
+     *  @param w The {@link RtfWriter} to write to.
      *  @param offset sum of the widths of preceeding cells in same row
      *  @return offset + width of this cell
      */
-    int writeCellDef(int offset) throws IOException {
+    int writeCellDef(RtfWriter w, int offset) throws IOException {
         /*
          * Don't write \clmgf or \clmrg. Instead add the widths
          * of all spanned columns and create a single wider cell,
@@ -206,26 +206,26 @@ public class RtfTableCell
             return offset;
         }
 
-        newLine();
+        w.newLine();
         this.widthOffset = offset;
 
         // vertical cell merge codes
         if (vMerge == MERGE_START) {
-            writeControlWord("clvmgf");
+            w.writeControlWord("clvmgf");
         } else if (vMerge == MERGE_WITH_PREVIOUS) {
-            writeControlWord("clvmrg");
+            w.writeControlWord("clvmrg");
         }
 
         /**
          * Added by Boris POUDEROUS on 2002/06/26
          */
         // Cell background color processing :
-        writeAttributes(attrib, ITableAttributes.CELL_COLOR);
+        w.writeAttributes(attrib, ITableAttributes.CELL_COLOR);
         /** - end - */
 
-        writeAttributes(attrib, ITableAttributes.ATTRIB_CELL_PADDING);
-        writeAttributes(attrib, ITableAttributes.CELL_BORDER);
-        writeAttributes(attrib, IBorderAttributes.BORDERS);
+        w.writeAttributes(attrib, ITableAttributes.ATTRIB_CELL_PADDING);
+        w.writeAttributes(attrib, ITableAttributes.CELL_BORDER);
+        w.writeAttributes(attrib, IBorderAttributes.BORDERS);
 
         // determine cell width
         int iCurrentWidth = this.cellWidth;
@@ -264,52 +264,53 @@ public class RtfTableCell
         //these lines added by Chris Scott, Westinghouse
         //some attributes need to be written before opening block
         if (setCenter) {
-            writeControlWord("trqc");
+            w.writeControlWord("trqc");
         } else if (setRight) {
-            writeControlWord("trqr");
+            w.writeControlWord("trqr");
         } else {
-            writeControlWord("trql");
+            w.writeControlWord("trql");
         }
-        writeAttributes(attrib, ITableAttributes.CELL_VERT_ALIGN);
+        w.writeAttributes(attrib, ITableAttributes.CELL_VERT_ALIGN);
 
-        writeControlWord("cellx" + xPos);
+        w.writeControlWord("cellx" + xPos);
 
         return xPos;
-
     }
 
     /**
      * Overriden to avoid writing any it's a merged cell.
+     * @param w the value of w
      * @throws IOException for I/O problems
      */
-    protected void writeRtfContent() throws IOException {
+    protected void writeRtfContent(RtfWriter w) throws IOException {
        // Never write horizontally merged cells.
        if (hMerge == MERGE_WITH_PREVIOUS) {
            return;
        }
 
-       super.writeRtfContent();
+       super.writeRtfContent(w);
     }
 
     /**
      * Called before writeRtfContent; overriden to avoid writing
      * any it's a merged cell.
+     * @param w the value of w
      * @throws IOException for I/O problems
      */
-    protected void writeRtfPrefix() throws IOException {
+    protected void writeRtfPrefix(RtfWriter w) throws IOException {
         // Never write horizontally merged cells.
         if (hMerge == MERGE_WITH_PREVIOUS) {
             return;
         }
 
-        super.writeRtfPrefix();
+        super.writeRtfPrefix(w);
     }
 
     /**
      * The "cell" control word marks the end of a cell
-     * @throws IOException for I/O problems
+     * {@inheritDoc} 
      */
-    protected void writeRtfSuffix() throws IOException {
+    protected void writeRtfSuffix(RtfWriter w) throws IOException {
         // Never write horizontally merged cells.
         if (hMerge == MERGE_WITH_PREVIOUS) {
             return;
@@ -318,12 +319,12 @@ public class RtfTableCell
         if (getRow().getTable().isNestedTable()) {
             //nested table
             if (lastBreak == null) {
-                writeControlWord("nestcell");
+                w.writeControlWord("nestcell");
             }
-            writeGroupMark(true);
-            writeControlWord("nonesttables");
-            writeControlWord("par");
-            writeGroupMark(false);
+            w.writeGroupMark(true);
+            w.writeControlWord("nonesttables");
+            w.writeControlWord("par");
+            w.writeGroupMark(false);
         } else {
             // word97 hangs if cell does not contain at least one "par" control word
             // TODO this is what causes the extra spaces in nested table of test
@@ -331,9 +332,9 @@ public class RtfTableCell
             // but if is not here we generate invalid RTF for word97
 
             if (setCenter) {
-                writeControlWord("qc");
+                w.writeControlWord("qc");
             } else if (setRight) {
-                writeControlWord("qr");
+                w.writeControlWord("qr");
             } else {
                 RtfElement lastChild = null;
 
@@ -341,26 +342,19 @@ public class RtfTableCell
                     lastChild = (RtfElement) getChildren().get(getChildren().size() - 1);
                 }
 
-
-                if (lastChild != null
-                        && lastChild instanceof RtfTextrun) {
+                if (lastChild != null && lastChild instanceof RtfTextrun) {
                     //Don't write \ql in order to allow for example a right aligned paragraph
                     //in a not right aligned table-cell to write its \qr.
                 } else {
-                    writeControlWord("ql");
+                    w.writeControlWord("ql");
                 }
             }
 
             if (!containsText()) {
-                writeControlWord("intbl");
-
-                //R.Marra this create useless paragraph
-                //Seem working into Word97 with the "intbl" only
-                //writeControlWord("par");
+                w.writeControlWord("intbl");
             }
-
             if (lastBreak == null) {
-                writeControlWord("cell");
+                w.writeControlWord("cell");
             }
         }
     }
@@ -519,7 +513,7 @@ public class RtfTableCell
             attrs.set("intbl");
         }
 
-        RtfTextrun textrun = RtfTextrun.getTextrun(this, writer, attrs);
+        RtfTextrun textrun = RtfTextrun.getTextrun(this, attrs);
 
         //Suppress the very last \par, because the closing \cell applies the
         //paragraph attributes.

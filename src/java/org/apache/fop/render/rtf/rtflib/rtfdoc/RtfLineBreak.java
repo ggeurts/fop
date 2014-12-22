@@ -27,7 +27,6 @@ package org.apache.fop.render.rtf.rtflib.rtfdoc;
  */
 
 import java.io.IOException;
-import java.io.Writer;
 
 /**
  * <p>Model of an RTF line break.</p>
@@ -37,16 +36,13 @@ import java.io.Writer;
 
 public class RtfLineBreak extends RtfElement {
     /** Create an RTF paragraph as a child of given container with default attributes */
-    RtfLineBreak(IRtfTextContainer parent, RtfWriter w) throws IOException {
-        super((RtfContainer)parent, w);
+    RtfLineBreak(IRtfTextContainer parent) throws IOException {
+        super((RtfContainer)parent);
     }
 
-    /**
-     * Overridden to write our attributes before our content
-     * @throws IOException for I/O problems
-     */
-    protected void writeRtfContent() throws IOException {
-        writeControlWord("line");
+    /** {@inheritDoc} */
+    protected void writeRtfContent(RtfWriter w) throws IOException {
+        w.writeControlWord("line");
     }
 
     /** @return true if this element would generate no "useful" RTF content */

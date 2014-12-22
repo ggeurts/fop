@@ -61,9 +61,9 @@ public class RtfTextrun extends RtfContainer {
     /**  Class which represents the opening of a RTF group mark.*/
     private class RtfOpenGroupMark extends RtfElement {
 
-        RtfOpenGroupMark(RtfContainer parent, RtfWriter w, RtfAttributes attr)
+        RtfOpenGroupMark(RtfContainer parent, RtfAttributes attr)
                 throws IOException {
-            super(parent, w, attr);
+            super(parent, attr);
         }
 
         /**
@@ -73,13 +73,10 @@ public class RtfTextrun extends RtfContainer {
             return false;
         }
 
-        /**
-         * write RTF code of all our children
-         * @throws IOException for I/O problems
-         */
-        protected void writeRtfContent() throws IOException {
-            writeGroupMark(true);
-            writeAttributes(getRtfAttributes(), null);
+        /** {@inheritDoc} */
+        protected void writeRtfContent(RtfWriter w) throws IOException {
+            w.writeGroupMark(true);
+            w.writeAttributes(getRtfAttributes(), null);
         }
     }
 
@@ -87,9 +84,9 @@ public class RtfTextrun extends RtfContainer {
     private class RtfCloseGroupMark extends RtfElement {
         private int breakType = BREAK_NONE;
 
-        RtfCloseGroupMark(RtfContainer parent, RtfWriter w, int breakType)
+        RtfCloseGroupMark(RtfContainer parent, int breakType)
                   throws IOException {
-            super(parent, w);
+            super(parent);
             this.breakType = breakType;
         }
 
@@ -108,32 +105,29 @@ public class RtfTextrun extends RtfContainer {
             return breakType;
         }
 
-        /**
-         * Write RTF code of all our children.
-         * @throws IOException for I/O problems
-         */
-        protected void writeRtfContent() throws IOException {
-            writeGroupMark(false);
+        /** {@inheritDoc} */
+        protected void writeRtfContent(RtfWriter w) throws IOException {
+            w.writeGroupMark(false);
 
             //Unknown behavior when a table starts a new section,
             //Word may crash
             if (breakType != BREAK_NONE) {
                 boolean bHasTableCellParent = this.getParentOfClass(RtfTableCell.class) != null;
                 if (!bHasTableCellParent) {
-                    writeControlWord("sect");
+                    w.writeControlWord("sect");
                     /* The following modifiers don't seem to appear in the right place */
                     switch (breakType) {
                     case BREAK_EVEN_PAGE:
-                        writeControlWord("sbkeven");
+                        w.writeControlWord("sbkeven");
                         break;
                     case BREAK_ODD_PAGE:
-                        writeControlWord("sbkodd");
+                        w.writeControlWord("sbkodd");
                         break;
                     case BREAK_COLUMN:
-                        writeControlWord("sbkcol");
+                        w.writeControlWord("sbkcol");
                         break;
                     default:
-                        writeControlWord("sbkpage");
+                        w.writeControlWord("sbkpage");
                     }
                 } else {
                     log.warn("Cannot create break-after for a paragraph inside a table.");
@@ -143,8 +137,8 @@ public class RtfTextrun extends RtfContainer {
     }
 
     /** Create an RTF container as a child of given container */
-    RtfTextrun(RtfContainer parent, RtfWriter w, RtfAttributes attrs) throws IOException {
-        super(parent, w, attrs);
+    RtfTextrun(RtfContainer parent, RtfAttributes attrs) throws IOException {
+        super(parent, attrs);
     }
 
 
@@ -155,7 +149,7 @@ public class RtfTextrun extends RtfContainer {
      * @throws IOException for I/O problems
      */
     private void addOpenGroupMark(RtfAttributes attrs) throws IOException {
-        RtfOpenGroupMark r = new RtfOpenGroupMark(this, writer, attrs);
+        RtfOpenGroupMark r = new RtfOpenGroupMark(this, attrs);
     }
 
     /**
@@ -176,7 +170,7 @@ public class RtfTextrun extends RtfContainer {
             }
         }
         
-        RtfCloseGroupMark r = new RtfCloseGroupMark(this, writer, breakType);
+        RtfCloseGroupMark r = new RtfCloseGroupMark(this, breakType);
     }
 
     /**
@@ -222,7 +216,7 @@ public class RtfTextrun extends RtfContainer {
      * @throws IOException for I/O problems
      */
     public void addPageNumberCitation(String refId) throws IOException {
-        RtfPageNumberCitation r = new RtfPageNumberCitation(this, writer, refId);
+        RtfPageNumberCitation r = new RtfPageNumberCitation(this, refId);
     }
 
     /**
@@ -250,7 +244,7 @@ public class RtfTextrun extends RtfContainer {
         rtfSpaceManager.pushRtfSpaceSplitter(attrs);
         rtfSpaceManager.setCandidate(attrs);
         // create a string and add it as a child
-        new RtfString(this, writer, s);
+        new RtfString(this, s);
         rtfSpaceManager.popRtfSpaceSplitter();
     }
 
@@ -261,7 +255,7 @@ public class RtfTextrun extends RtfContainer {
      * @throws IOException for I/O problems
      */
     public RtfFootnote addFootnote() throws IOException {
-        return new RtfFootnote(this, writer);
+        return new RtfFootnote(this);
     }
 
     /**
@@ -298,7 +292,7 @@ public class RtfTextrun extends RtfContainer {
             marks[i] = (RtfCloseGroupMark)lit.next();
             lit.remove();
         }
-        RtfParagraphBreak result = new RtfParagraphBreak(this, writer);
+        RtfParagraphBreak result = new RtfParagraphBreak(this);
         for (int i = 0; i < markCount; i++)
         {
             addChild(marks[i]);
@@ -313,7 +307,7 @@ public class RtfTextrun extends RtfContainer {
      * @throws IOException for I/O problems
      */
     public void addLeader(RtfAttributes attrs) throws IOException {
-        new RtfLeader(this, writer, attrs);
+        new RtfLeader(this, attrs);
     }
 
     /**
@@ -322,7 +316,7 @@ public class RtfTextrun extends RtfContainer {
      * @throws IOException for I/O problems
      */
     public void addPageNumber(RtfAttributes attr) throws IOException {
-        RtfPageNumber r = new RtfPageNumber(this, writer, attr);
+        RtfPageNumber r = new RtfPageNumber(this, attr);
     }
 
     /**
@@ -332,7 +326,7 @@ public class RtfTextrun extends RtfContainer {
      * @throws IOException for I/O problems
      */
     public RtfHyperLink addHyperlink(RtfAttributes attr) throws IOException {
-        return new RtfHyperLink(this, writer, attr);
+        return new RtfHyperLink(this, attr);
     }
 
     /**
@@ -343,7 +337,7 @@ public class RtfTextrun extends RtfContainer {
     public void addBookmark(String id) throws IOException {
        if (id.length() > 0) {
             // if id is not empty, add bookmark
-           new RtfBookmark(this, writer, id);
+           new RtfBookmark(this, id);
        }
     }
 
@@ -353,42 +347,29 @@ public class RtfTextrun extends RtfContainer {
      * @throws IOException for I/O problems
      */
     public RtfExternalGraphic newImage() throws IOException {
-        return new RtfExternalGraphic(this, writer);
+        return new RtfExternalGraphic(this);
     }
 
     /**
      * Adds a new RtfTextrun to the given container if necessary, and returns it.
      * @param container RtfContainer, which is the parent of the returned RtfTextrun
-     * @param writer Writer of the given RtfContainer
      * @param attrs RtfAttributes which are to write at the beginning of the RtfTextrun
-     * @return new or existing RtfTextrun object.
      * @throws IOException for I/O problems
+     * @return the org.apache.fop.render.rtf.rtflib.rtfdoc.RtfTextrun
      */
-    public static RtfTextrun getTextrun(RtfContainer container, RtfWriter writer, RtfAttributes attrs)
-            throws IOException {
-
+    public static RtfTextrun getTextrun(RtfContainer container, RtfAttributes attrs)
+    throws IOException {
+        //if the last child is a RtfTextrun, return it
         List list = container.getChildren();
-
-        if (list.size() == 0) {
-            //add a new RtfTextrun
-            RtfTextrun textrun = new RtfTextrun(container, writer, attrs);
-            list.add(textrun);
-
-            return textrun;
+        if (!list.isEmpty()) {
+            Object obj = list.get(list.size() - 1);
+            if (obj instanceof RtfTextrun) {
+                return (RtfTextrun) obj;
+            }
         }
 
-        Object obj = list.get(list.size() - 1);
-
-        if (obj instanceof RtfTextrun) {
-            //if the last child is a RtfTextrun, return it
-            return (RtfTextrun) obj;
-        }
-
-        //add a new RtfTextrun as the last child
-        RtfTextrun textrun = new RtfTextrun(container, writer, attrs);
-        list.add(textrun);
-
-        return textrun;
+        //add a new RtfTextrun
+        return new RtfTextrun(container, attrs);
     }
 
     /**
@@ -401,9 +382,10 @@ public class RtfTextrun extends RtfContainer {
 
     /**
      * write RTF code of all our children
+     * @param w the value of w
      * @throws IOException for I/O problems
      */
-    protected void writeRtfContent() throws IOException {
+    protected void writeRtfContent(RtfWriter w) throws IOException {
         tryRemoveLastParagraphBreak();
         if (getChildCount() == 0) return;
         
@@ -414,10 +396,10 @@ public class RtfTextrun extends RtfContainer {
         RtfAttributes attrBlockLevel = new RtfAttributes();
 
         //may contain for example \intbl
-        writeAttributes(attrib, null);
+        w.writeAttributes(attrib, null);
 
         if (rtfListItem != null) {
-            rtfListItem.getRtfListStyle().writeParagraphPrefix(this);
+            rtfListItem.getRtfListStyle().writeParagraphPrefix(w);
         }
 
         //write all children
@@ -431,23 +413,23 @@ public class RtfTextrun extends RtfContainer {
             
             if (e instanceof RtfOpenGroupMark) {
                 if (groupLevel++ == 0) {
-                    newLine();
+                    w.newLine();
                 }
             } else if (e instanceof RtfCloseGroupMark) {
                 groupLevel--;
             }
 
-            e.writeRtf();
+            e.writeRtf(w);
 
             if (rtfListItem != null && bRtfParagraphBreak) {
                 // May cause bug where list item symbol is written multiple times...
-                rtfListItem.getRtfListStyle().writeParagraphPrefix(this);
+                rtfListItem.getRtfListStyle().writeParagraphPrefix(w);
             }
         } //for (Iterator it = ...)
 
         //
         if (bHasTableCellParent) {
-            writeAttributes(attrBlockLevel, null);
+            w.writeAttributes(attrBlockLevel, null);
         }
     }
 

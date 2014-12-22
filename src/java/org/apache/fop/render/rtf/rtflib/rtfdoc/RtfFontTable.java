@@ -38,13 +38,14 @@ import java.io.Writer;
 
 class RtfFontTable extends RtfElement {
     /** Create an RTF header */
-    RtfFontTable(RtfHeader h, RtfWriter w) throws IOException {
-        super(h, w);
+    RtfFontTable(RtfHeader h) throws IOException {
+        super(h);
     }
 
-    /** write our contents to m_writer. */
-    protected void writeRtfContent() throws IOException {
-        RtfFontManager.getInstance().writeFonts((RtfHeader)parent);
+    /** write our contents to m_writer.
+     * @param w the value of w */
+    protected void writeRtfContent(RtfWriter w) throws IOException {
+        RtfFontManager.getInstance().writeFonts(w);
     }
 
     /** true if this element would generate no "useful" RTF content */

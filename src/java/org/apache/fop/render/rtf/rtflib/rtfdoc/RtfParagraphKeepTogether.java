@@ -27,7 +27,6 @@ package org.apache.fop.render.rtf.rtflib.rtfdoc;
  */
 
 import java.io.IOException;
-import java.io.Writer;
 
 /**
  * Models the keep together attributes of paragraphs
@@ -45,32 +44,27 @@ public class RtfParagraphKeepTogether extends RtfContainer {
 
 
     /**    RtfParagraphKeepTogether*/
-    RtfParagraphKeepTogether(IRtfParagraphContainer parent, RtfWriter w) throws IOException {
-        super((RtfContainer)parent, w);
+    RtfParagraphKeepTogether(IRtfParagraphContainer parent) throws IOException {
+        super((RtfContainer)parent);
     }
 
-    /**
-     * Write the content
-     * @throws IOException for I/O problems
-     */
-    protected void writeRtfContent() throws IOException {
+    /** {@inheritDoc} */
+    protected void writeRtfContent(RtfWriter w) throws IOException {
 
-        //First reet paragraph properties
+        // First reset paragraph properties
         // create a new one with keepn
         if (status == STATUS_OPEN_PARAGRAPH) {
-            writeControlWord("pard");
-            writeControlWord("par");
-            writeControlWord("keepn");
-            writeGroupMark(true);
+            w.writeControlWord("pard");
+            w.writeControlWord("par");
+            w.writeControlWord("keepn");
+            w.writeGroupMark(true);
             status = STATUS_NULL;
         }
-
 
         if (status == STATUS_CLOSE_PARAGRAPH) {
-            writeGroupMark(false);
+            w.writeGroupMark(false);
             status = STATUS_NULL;
         }
-
     }
 
 

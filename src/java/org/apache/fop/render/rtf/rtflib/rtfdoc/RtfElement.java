@@ -37,24 +37,25 @@ import java.util.Iterator;
  * and Andreas Putz (a.putz@skynamics.com).</p>
  */
 public abstract class RtfElement {
-    /** Writer to be used */
-    protected final RtfWriter writer;
     /** parent element */
     protected final RtfContainer parent;
     /** attributes of the element */
     protected final RtfAttributes attrib;
-    private boolean written;
     private boolean closed;
     private final int id;
     private static int idCounter;
 
-    /** Create an RTF element as a child of given container */
-    RtfElement(RtfContainer parent, RtfWriter w) throws IOException {
-        this(parent, w, null);
+    /** Create an RTF element as a child of given container
+     * @param parent the value of parent */
+    RtfElement(RtfContainer parent) throws IOException {
+        this(parent, null);
     }
 
-    /** Create an RTF element as a child of given container with given attributes */
-    RtfElement(RtfContainer parent, RtfWriter w, RtfAttributes attr) throws IOException {
+    /** Create an RTF element as a child of given container with given attributes
+     * @param parent the value of parent
+     * @param attr the RTF attributes 
+     */
+    RtfElement(RtfContainer parent, RtfAttributes attr) throws IOException {
 
         id = idCounter++;
         this.parent = parent;
@@ -62,8 +63,6 @@ public abstract class RtfElement {
         if (this.parent != null) {
             this.parent.addChild(this);
         }
-        writer = w;
-        written = false;
     }
 
     /**
@@ -77,149 +76,38 @@ public abstract class RtfElement {
 
     /**
      * Write the RTF code of this element to our Writer
+     * @param w the value of w
      * @throws IOException for I/O problems
      */
-    public final void writeRtf() throws IOException {
-        if (!written) {
-            written = true;
-            if (okToWriteRtf()) {
-                writeRtfPrefix();
-                writeRtfContent();
-                writeRtfSuffix();
-            }
+    public final void writeRtf(RtfWriter w) throws IOException {
+        if (w != null && okToWriteRtf()) {
+            writeRtfPrefix(w);
+            writeRtfContent(w);
+            writeRtfSuffix(w);
         }
-    }
-
-    /**
-     * Starts a new line in the RTF file being written. This is only to format
-     * the RTF file itself (for easier debugging), not its content.
-     * @throws IOException in case of an I/O problem
-     */
-    public final void newLine() throws IOException {
-        writer.newLine();
-    }
-
-    /**
-     * Write given String, converting characters as required by RTF spec
-     * @param str String to be written
-     * @throws IOException for I/O problems
-     */
-    protected final void write(String str)
-    throws IOException {
-        writer.write(str);
-    }
-    
-    /**
-     * Write an RTF control word to our Writer
-     * @param word RTF control word to write
-     * @throws IOException for I/O problems
-     */
-    protected final void writeControlWord(String word)
-    throws IOException {
-        writer.writeControlWord(word);
-    }
-
-    /**
-     * Write an RTF control word and parameter to our Writer
-     * @param word RTF control word to write
-     * @param parameter RTF control word parameter value
-     * @throws IOException for I/O problems
-     */
-    final void writeControlWord(String word, int parameter)
-    throws IOException {
-        writer.writeControlWord(word, parameter);
-    }
-    
-    /**
-     * Write an RTF control word to our Writer, preceeded by a star '*'
-     * meaning "ignore this if you don't know what it means"
-     * @param word RTF control word to write
-     * @throws IOException for I/O problems
-     */
-    protected final void writeStarControlWord(String word)
-    throws IOException {
-        writer.writeStarControlWord(word);
     }
 
     /**
      * Called before writeRtfContent()
+     * @param w the {@link RtfWriter} to write to
      * @throws IOException for I/O problems
      */
-    protected void writeRtfPrefix() throws IOException {
+    protected void writeRtfPrefix(RtfWriter w) throws IOException {
     }
 
     /**
      * Must be implemented to write RTF content to m_writer
+     * @param w the {@link RtfWriter} to write to
      * @throws IOException for I/O problems
      */
-    protected abstract void writeRtfContent() throws IOException;
+    protected abstract void writeRtfContent(RtfWriter w) throws IOException;
 
     /**
      * Called after writeRtfContent()
+     * @param w the {@link RtfWriter} to write to
      * @throws IOException for I/O problems
      */
-    protected void writeRtfSuffix() throws IOException {
-    }
-
-    /**
-     * Write a start or end group mark
-     * @param isStart set to true if this is a start mark
-     * @throws IOException for I/O problems
-     */
-    protected final void writeGroupMark(boolean isStart)
-    throws IOException {
-        writer.writeGroupMark(isStart);
-    }
-
-    /**
-     * Write given attribute values to our Writer
-     * @param attr RtfAttributes to be written
-     * @param nameList if given, only attribute names from this list are considered
-     * @throws IOException for I/O problems
-     */
-    protected void writeAttributes(RtfAttributes attr, String [] nameList)
-    throws IOException {
-        if (attr == null) {
-            return;
-        }
-
-        if (nameList != null) {
-            // process only given attribute names
-            for (int i = 0; i < nameList.length; i++) {
-                final String name = nameList[i];
-                if (attr.isSet(name)) {
-                    writeOneAttribute(name, attr.getValue(name));
-                }
-            }
-        } else {
-            // process all defined attributes
-            for (Iterator it = attr.nameIterator(); it.hasNext();) {
-                final String name = (String)it.next();
-                if (attr.isSet(name)) {
-                    writeOneAttribute(name, attr.getValue(name));
-                }
-            }
-        }
-    }
-    
-    /**
-     * Write one attribute to our Writer
-     * @param name name of attribute to write
-     * @param value value of attribute to be written
-     * @throws IOException for I/O problems
-     */
-    protected void writeOneAttribute(String name, Object value)
-    throws IOException {
-        if (value instanceof Integer) {
-            writeControlWord(name, (Integer) value);
-        } else if (value instanceof String) {
-            writeControlWord(name + (String)value);
-        } else if (value instanceof RtfAttributes) {
-            writeControlWord(name);
-            writeAttributes((RtfAttributes) value, null);
-        } else {
-            writeControlWord(name);
-        }
+    protected void writeRtfSuffix(RtfWriter w) throws IOException {
     }
 
     /**
@@ -287,29 +175,6 @@ public abstract class RtfElement {
      * @return true if this element would generate no "useful" RTF content
      */
     public abstract boolean isEmpty();
-
-    /**
-     * Make a visible entry in the RTF for an exception
-     * @param ie Exception to flag
-     * @throws IOException for I/O problems
-     */
-    protected void writeExceptionInRtf(Exception ie)
-    throws IOException {
-        writeGroupMark(true);
-        writeControlWord("par");
-
-        // make the exception message stand out so that the problem is visible
-        writeControlWord("fs48");
-//        RtfStringConverter.getInstance().writeRtfString(m_writer,
-//                JForVersionInfo.getShortVersionInfo() + ": ");
-        write(ie.getClass().getName());
-
-        writeControlWord("fs20");
-        write(ie.toString());
-
-        writeControlWord("par");
-        writeGroupMark(false);
-    }
 
     /**
      * Added by Normand Masse
