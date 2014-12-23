@@ -27,7 +27,6 @@ package org.apache.fop.render.rtf.rtflib.rtfdoc;
  */
 
 import java.io.IOException;
-import java.io.Writer;
 import java.util.Iterator;
 import java.util.LinkedList;
 
@@ -39,8 +38,8 @@ import java.util.LinkedList;
  * <p>This work was authored by Christopher Scott (scottc@westinghouse.com).</p>
  */
 public class RtfListTable extends RtfContainer {
-    private LinkedList lists;
-    private LinkedList styles;
+    private final LinkedList lists = new LinkedList();
+    private final LinkedList styles = new LinkedList();
 
 //static data members
     /** constant for a list table */
@@ -96,16 +95,11 @@ public class RtfListTable extends RtfContainer {
      * RtfListTable Constructor: sets the number of the list, and allocates
      * for the RtfAttributes
      * @param parent RtfContainer holding this RtfListTable
-     * @param w Writer
-     * @param num number of the list in the document
-     * @param attrs attributes of new RtfListTable
      * @throws IOException for I/O problems
      */
-    public RtfListTable(RtfContainer parent, Integer num, RtfAttributes attrs)
+    public RtfListTable(RtfContainer parent)
     throws IOException {
-        super(parent, attrs);
-
-        styles = new LinkedList();
+        super(parent);
     }
 
     /**
@@ -114,12 +108,7 @@ public class RtfListTable extends RtfContainer {
      * @return number of lists in the table after adding
      */
     public int addList(RtfList list) {
-        if (lists == null) {
-            lists = new LinkedList();
-        }
-
         lists.add(list);
-
         return lists.size();
     }
 
@@ -130,52 +119,47 @@ public class RtfListTable extends RtfContainer {
      */
     protected void writeRtfContent(RtfWriter w) throws IOException {
         w.newLine();
-        if (lists != null) {
-            //write '\listtable'
-            w.writeGroupMark(true);
-            w.writeStarControlWord(LIST_TABLE);
+        w.writeGroupMark(true);
+        w.writeStarControlWord(LIST_TABLE);
+        w.newLine();
+        for (Iterator it = lists.iterator(); it.hasNext();) {
+            final RtfList list = (RtfList)it.next();
+            writeListTableEntry(w, list);
             w.newLine();
-            for (Iterator it = lists.iterator(); it.hasNext();) {
-                final RtfList list = (RtfList)it.next();
-                writeListTableEntry(w, list);
-                w.newLine();
-            }
+        }
+        w.writeGroupMark(false);
+
+        w.newLine();
+        w.writeGroupMark(true);
+        w.writeStarControlWord(LIST_OVR_TABLE);
+        int z = 1;
+        w.newLine();
+        for (Iterator it = styles.iterator(); it.hasNext();) {
+            final RtfListStyle style = (RtfListStyle)it.next();
+
+            w.writeGroupMark(true);
+            w.writeStarControlWord(LIST_OVR);
+            w.writeGroupMark(true);
+
+            w.writeOneAttribute(LIST_ID, style.getRtfList().getListId().toString());
+            w.writeOneAttribute(LIST_OVR_COUNT, new Integer(0));
+            w.writeOneAttribute(LIST_NUMBER, new Integer(z++));
+
             w.writeGroupMark(false);
-
-            w.newLine();
-            //write '\listoveridetable'
-            w.writeGroupMark(true);
-            w.writeStarControlWord(LIST_OVR_TABLE);
-            int z = 1;
-            w.newLine();
-            for (Iterator it = styles.iterator(); it.hasNext();) {
-                final RtfListStyle style = (RtfListStyle)it.next();
-
-                w.writeGroupMark(true);
-                w.writeStarControlWord(LIST_OVR);
-                w.writeGroupMark(true);
-
-                w.writeOneAttribute(LIST_ID, style.getRtfList().getListId().toString());
-                w.writeOneAttribute(LIST_OVR_COUNT, new Integer(0));
-                w.writeOneAttribute(LIST_NUMBER, new Integer(z++));
-
-                w.writeGroupMark(false);
-                w.writeGroupMark(false);
-                w.newLine();
-            }
-
             w.writeGroupMark(false);
             w.newLine();
         }
+
+        w.writeGroupMark(false);
+        w.newLine();
     }
 
     /**
      * Since this has no text content we have to overwrite isEmpty to print
      * the table
-     * @return false (always)
      */
     public boolean isEmpty() {
-        return false;
+        return lists.isEmpty();
     }
 
     private void writeListTableEntry(RtfWriter w, RtfList list)

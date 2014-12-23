@@ -401,7 +401,7 @@ public class RTFHandler extends FOEventHandler {
 
         try {
             RtfAttributes rtfAttr
-                = TextAttributesConverter.convertAttributes(bl);
+                = TextAttributesConverter.convertAttributes(bl, rtfFile);
 
             IRtfTextrunContainer container
                 = (IRtfTextrunContainer)builderContext.getContainer(
@@ -461,8 +461,8 @@ public class RTFHandler extends FOEventHandler {
         }
 
         try {
-            RtfAttributes rtfAttr
-                = TextAttributesConverter.convertBlockContainerAttributes(blc);
+            RtfAttributes rtfAttr = TextAttributesConverter
+                    .convertBlockContainerAttributes(blc, rtfFile);
 
             IRtfTextrunContainer container
                 = (IRtfTextrunContainer)builderContext.getContainer(
@@ -639,8 +639,8 @@ public class RTFHandler extends FOEventHandler {
         }
 
         try {
-            RtfAttributes rtfAttr
-                = TextAttributesConverter.convertCharacterAttributes(inl);
+            RtfAttributes rtfAttr = TextAttributesConverter
+                    .convertCharacterAttributes(inl, rtfFile);
 
             IRtfTextrunContainer container
                 = (IRtfTextrunContainer)builderContext.getContainer(
@@ -832,7 +832,8 @@ public class RTFHandler extends FOEventHandler {
             float width = tctx.getColumnWidth();
 
             // create an RtfTableCell in the current RtfTableRow
-            RtfAttributes atts = TableAttributesConverter.convertCellAttributes(tc);
+            RtfAttributes atts = TableAttributesConverter
+                    .convertCellAttributes(tc, rtfFile);
             RtfTableCell cell = row.newTableCell((int)width, atts);
 
             //process number-rows-spanned attribute
@@ -1370,8 +1371,8 @@ public class RTFHandler extends FOEventHandler {
 
         try {
             percentManager.setDimension(l);
-            RtfAttributes rtfAttr = TextAttributesConverter.convertLeaderAttributes(
-                    l, percentManager);
+            RtfAttributes rtfAttr = TextAttributesConverter
+                    .convertLeaderAttributes(l, percentManager, rtfFile);
 
             IRtfTextrunContainer container
                   = (IRtfTextrunContainer)builderContext.getContainer(
@@ -1403,8 +1404,8 @@ public class RTFHandler extends FOEventHandler {
                     IRtfTextrunContainer.class, true, this);
 
             RtfTextrun textrun = container.getTextrun();
-            RtfAttributes rtfAttr
-                = TextAttributesConverter.convertCharacterAttributes(text);
+            RtfAttributes rtfAttr = TextAttributesConverter
+                    .convertCharacterAttributes(text, rtfFile);
 
             textrun.pushInlineAttributes(rtfAttr);
             textrun.addString(characters.toString());
@@ -1424,9 +1425,8 @@ public class RTFHandler extends FOEventHandler {
         }
 
         try {
-            RtfAttributes rtfAttr
-                = TextAttributesConverter.convertCharacterAttributes(
-                    pagenum);
+            RtfAttributes rtfAttr = TextAttributesConverter
+                    .convertCharacterAttributes(pagenum, rtfFile);
 
             IRtfTextrunContainer container
                 = (IRtfTextrunContainer)builderContext.getContainer(

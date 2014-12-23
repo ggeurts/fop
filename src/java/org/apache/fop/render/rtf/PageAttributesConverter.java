@@ -31,6 +31,7 @@ import org.apache.fop.fo.pagination.SimplePageMaster;
 import org.apache.fop.fo.properties.CommonMarginBlock;
 import org.apache.fop.render.rtf.rtflib.rtfdoc.RtfAttributes;
 import org.apache.fop.render.rtf.rtflib.rtfdoc.RtfPage;
+import org.apache.fop.render.rtf.rtflib.rtfdoc.RtfSection;
 
 
 /**
@@ -56,7 +57,7 @@ final class PageAttributesConverter {
 
         try {
             RegionBA before = (RegionBA) pagemaster.getRegion(Constants.FO_REGION_BEFORE);
-            RegionBody body   = (RegionBody) pagemaster.getRegion(Constants.FO_REGION_BODY);
+            RegionBody body = (RegionBody) pagemaster.getRegion(Constants.FO_REGION_BODY);
             RegionBA after  = (RegionBA) pagemaster.getRegion(Constants.FO_REGION_AFTER);
 
             attrib.setTwips(RtfPage.PAGE_WIDTH, pagemaster.getPageWidth());
@@ -67,7 +68,7 @@ final class PageAttributesConverter {
             Object widthRaw = attrib.getValue(RtfPage.PAGE_WIDTH);
             Object heightRaw = attrib.getValue(RtfPage.PAGE_HEIGHT);
             if ((widthRaw instanceof Integer) && (heightRaw instanceof Integer)
-                    && ((Integer) widthRaw).intValue() > ((Integer) heightRaw).intValue()) {
+                    && ((Integer) widthRaw) > ((Integer) heightRaw)) {
                 attrib.set(RtfPage.LANDSCAPE);
             }
 
@@ -111,6 +112,70 @@ final class PageAttributesConverter {
         } catch (Exception e) {
             log.error("Exception in convertPageAttributes: "
                 + e.getMessage() + "- page attributes ignored");
+            attrib = new FOPRtfAttributes();
+        }
+
+        return attrib;
+    }
+
+    static RtfAttributes convertSectionAttributes(SimplePageMaster pagemaster) {
+        FOPRtfAttributes attrib = new FOPRtfAttributes();
+
+        try {
+            RegionBA before = (RegionBA) pagemaster.getRegion(Constants.FO_REGION_BEFORE);
+            RegionBody body = (RegionBody) pagemaster.getRegion(Constants.FO_REGION_BODY);
+            RegionBA after  = (RegionBA) pagemaster.getRegion(Constants.FO_REGION_AFTER);
+
+            attrib.setTwips(RtfSection.PAGE_WIDTH, pagemaster.getPageWidth());
+            attrib.setTwips(RtfSection.PAGE_HEIGHT, pagemaster.getPageHeight());
+
+            Object widthRaw = attrib.getValue(RtfPage.PAGE_WIDTH);
+            Object heightRaw = attrib.getValue(RtfPage.PAGE_HEIGHT);
+            if ((widthRaw instanceof Integer) && (heightRaw instanceof Integer)
+                    && ((Integer) widthRaw) > ((Integer) heightRaw)) {
+                attrib.set(RtfSection.LANDSCAPE);
+            }
+
+            Length pageTop = pagemaster.getCommonMarginBlock().marginTop;
+            Length pageBottom = pagemaster.getCommonMarginBlock().marginBottom;
+            Length pageLeft = pagemaster.getCommonMarginBlock().marginLeft;
+            Length pageRight = pagemaster.getCommonMarginBlock().marginRight;
+
+            Length bodyTop = pageTop;
+            Length bodyBottom = pageBottom;
+            Length bodyLeft = pageLeft;
+            Length bodyRight = pageRight;
+
+            if (body != null) {
+                // Should perhaps be replaced by full reference-area handling.
+                CommonMarginBlock bodyMargin = body.getCommonMarginBlock();
+                bodyTop = (Length) NumericOp.addition(pageTop, bodyMargin.marginTop);
+                bodyBottom = (Length) NumericOp.addition(pageBottom, bodyMargin.marginBottom);
+                bodyLeft = (Length) NumericOp.addition(pageLeft, bodyMargin.marginLeft);
+                bodyRight = (Length) NumericOp.addition(pageRight, bodyMargin.marginRight);
+            }
+
+            attrib.setTwips(RtfSection.MARGIN_TOP, bodyTop);
+            attrib.setTwips(RtfSection.MARGIN_BOTTOM, bodyBottom);
+            attrib.setTwips(RtfSection.MARGIN_LEFT, bodyLeft);
+            attrib.setTwips(RtfSection.MARGIN_RIGHT, bodyRight);
+
+            //region-before attributes
+            Length beforeTop = pageTop;
+            if (before != null) {
+                beforeTop = (Length) NumericOp.addition(pageTop, before.getExtent());
+            }
+            attrib.setTwips(RtfPage.HEADERY, beforeTop);
+
+            //region-after attributes
+            Length afterBottom = pageBottom;
+            if (after != null) {
+                afterBottom = (Length) NumericOp.addition(pageBottom, after.getExtent());
+            }
+            attrib.setTwips(RtfPage.FOOTERY, afterBottom);
+        } catch (Exception e) {
+            log.error("Exception in convertSectionAttributes: "
+                + e.getMessage() + "- section attributes ignored");
             attrib = new FOPRtfAttributes();
         }
 

@@ -43,14 +43,12 @@ import org.apache.fop.render.rtf.rtflib.exceptions.RtfStructureException;
  */
 
 public class RtfFile
-extends RtfContainer {
-    private RtfWriter writer;
-    private RtfHeader header;
+extends RtfContainer 
+implements IRtfMappings {
+    private final RtfWriter writer;
+    private final RtfHeader header;
     private RtfPageArea pageArea;
-    private RtfListTable listTable;
     private RtfDocumentArea docArea;
-    private RtfContainer listTableContainer;
-    private int listNum;
 
     /**
      * Create an RTF file that outputs to the given Writer
@@ -59,50 +57,46 @@ extends RtfContainer {
      */
     public RtfFile(Writer w) throws IOException {
         super(null);
+        header = new RtfHeader(this);
         writer = w != null ? new RtfWriter(w) : null;
     }
 
     /**
-     * If called, must be called before startDocumentArea
-     * @return the new RtfHeader
-     * @throws IOException for I/O problems
-     * @throws RtfStructureException for illegal RTF structure
+     * Returns the {@link RtfHeader} for this RTF file.
+     * @return the header.
      */
-    public RtfHeader startHeader()
-    throws IOException, RtfStructureException {
-        if (header != null) {
-            throw new RtfStructureException("startHeader called more than once");
-        }
-        header = new RtfHeader(this);
-        listTableContainer = new RtfContainer(this);
+    public RtfHeader getHeader() {        
         return header;
     }
 
     /**
-     * Creates the list table.
-     * @param attr attributes for the RtfListTable
-     * @return the new RtfListTable
-     * @throws IOException for I/O problems
+     * Gets the index of a color in the RTF color table
+     *
+     * @param red Color level red
+     * @param green Color level green
+     * @param blue Color level blue
+     * @return The number of the color in the table
      */
-    public RtfListTable startListTable(RtfAttributes attr)
-    throws IOException {
-        listNum++;
-        if (listTable != null) {
-            return listTable;
-        } else {
-            listTable = new RtfListTable(this, new Integer(listNum), attr);
-            listTableContainer.addChild(listTable);
-        }
-
-        return listTable;
+    public int getColorNumber(int red, int green, int blue) {
+        return header.getColorTable().getColorNumber(red, green, blue);
     }
 
+    /**
+     * Gets the index of a font in the RTF font table
+     *
+     * @param family Font family name ('Helvetica')
+     * @return The number of the font in the table
+     */
+    public int getFontNumber(String name) {
+        return header.getFontTable().getFontNumber(name);
+    }
+    
     /**
      * Get the list table.
      * @return the RtfListTable
      */
     public RtfListTable getListTable() {
-        return listTable;
+        return header.getListTable();
     }
 
     /**
@@ -118,10 +112,6 @@ extends RtfContainer {
     throws IOException, RtfStructureException {
         if (pageArea != null) {
             throw new RtfStructureException("startPageArea called more than once");
-        }
-        // create an empty header if there was none
-        if (header == null) {
-            startHeader();
         }
         header.close();
         return pageArea = new RtfPageArea(this);
@@ -152,10 +142,6 @@ extends RtfContainer {
         throws IOException, RtfStructureException {
         if (docArea != null) {
             throw new RtfStructureException("startDocumentArea called more than once");
-        }
-        // create an empty header if there was none
-        if (header == null) {
-            startHeader();
         }
         header.close();
         return docArea = new RtfDocumentArea(this);

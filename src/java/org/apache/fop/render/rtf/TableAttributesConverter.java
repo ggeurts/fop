@@ -29,6 +29,7 @@ import org.apache.fop.fo.flow.table.TableHeader;
 import org.apache.fop.fo.flow.table.TablePart;
 import org.apache.fop.fo.flow.table.TableRow;
 import org.apache.fop.fo.properties.CommonBorderPaddingBackground;
+import org.apache.fop.render.rtf.rtflib.rtfdoc.IRtfMappings;
 import org.apache.fop.render.rtf.rtflib.rtfdoc.ITableAttributes;
 import org.apache.fop.render.rtf.rtflib.rtfdoc.RtfAttributes;
 
@@ -99,7 +100,7 @@ public final class TableAttributesConverter {
      *
      * @throws ConverterException On conversion error
      */
-    static RtfAttributes convertCellAttributes(TableCell fobj)
+    static RtfAttributes convertCellAttributes(TableCell fobj, IRtfMappings rtfMappings)
     throws FOPException {
 
         //Property p;
@@ -144,17 +145,17 @@ public final class TableAttributesConverter {
                         || color.getRed() != 0
                         || color.getGreen() != 0
                         || color.getBlue() != 0)) {
-            attrib.set(ITableAttributes.CELL_COLOR_BACKGROUND, color);
+            attrib.set(ITableAttributes.CELL_COLOR_BACKGROUND, color, rtfMappings);
         }
 
         BorderAttributesConverter.makeBorder(border, CommonBorderPaddingBackground.BEFORE,
-                attrib, ITableAttributes.CELL_BORDER_TOP);
+                attrib, ITableAttributes.CELL_BORDER_TOP, rtfMappings);
         BorderAttributesConverter.makeBorder(border, CommonBorderPaddingBackground.AFTER,
-                attrib, ITableAttributes.CELL_BORDER_BOTTOM);
+                attrib, ITableAttributes.CELL_BORDER_BOTTOM, rtfMappings);
         BorderAttributesConverter.makeBorder(border, CommonBorderPaddingBackground.START,
-                attrib, ITableAttributes.CELL_BORDER_LEFT);
+                attrib, ITableAttributes.CELL_BORDER_LEFT, rtfMappings);
         BorderAttributesConverter.makeBorder(border, CommonBorderPaddingBackground.END,
-                attrib,  ITableAttributes.CELL_BORDER_RIGHT);
+                attrib,  ITableAttributes.CELL_BORDER_RIGHT, rtfMappings);
 
         int padding;
         boolean reproduceMSWordBug = true;
@@ -224,8 +225,8 @@ public final class TableAttributesConverter {
      * @return All valid rtf attributes together
      * @throws ConverterException On converion error
      */
-    static RtfAttributes convertRowAttributes(TableRow fobj,
-            RtfAttributes rtfatts)
+    static RtfAttributes convertRowAttributes(
+            TableRow fobj, RtfAttributes rtfatts, IRtfMappings rtfMappings)
     throws FOPException {
 
         //Property p;
@@ -279,13 +280,13 @@ public final class TableAttributesConverter {
          */
         CommonBorderPaddingBackground border = fobj.getCommonBorderPaddingBackground();
         BorderAttributesConverter.makeBorder(border, CommonBorderPaddingBackground.BEFORE,
-                attrib, ITableAttributes.CELL_BORDER_TOP);
+                attrib, ITableAttributes.CELL_BORDER_TOP, rtfMappings);
         BorderAttributesConverter.makeBorder(border, CommonBorderPaddingBackground.AFTER,
-                attrib, ITableAttributes.CELL_BORDER_BOTTOM);
+                attrib, ITableAttributes.CELL_BORDER_BOTTOM, rtfMappings);
         BorderAttributesConverter.makeBorder(border, CommonBorderPaddingBackground.START,
-                attrib, ITableAttributes.CELL_BORDER_LEFT);
+                attrib, ITableAttributes.CELL_BORDER_LEFT, rtfMappings);
         BorderAttributesConverter.makeBorder(border, CommonBorderPaddingBackground.END,
-                attrib, ITableAttributes.CELL_BORDER_RIGHT);
+                attrib, ITableAttributes.CELL_BORDER_RIGHT, rtfMappings);
 
 /*
         ep = (EnumProperty)fobj.getProperty(Constants.PR_BORDER_TOP_STYLE);

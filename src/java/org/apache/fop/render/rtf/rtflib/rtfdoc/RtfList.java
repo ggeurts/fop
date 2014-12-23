@@ -54,7 +54,7 @@ public class RtfList extends RtfContainer {
         listTemplateId = new Integer(listIdGenerator.nextInt());
 
         //create a new list table entry for the list
-        listTable = getRtfFile().startListTable(attr);
+        listTable = getRtfFile().getListTable();
         listTable.addList(this);
 
         // find out if we are nested in a table

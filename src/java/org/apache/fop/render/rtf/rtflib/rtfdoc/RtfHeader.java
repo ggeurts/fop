@@ -35,35 +35,56 @@ import java.util.Map;
  * <p>RTF file header, contains style, font and other document-level information.</p>
  *
  * <p>This work was authored by Bertrand Delacretaz (bdelacretaz@codeconsult.ch),
- * Andreas Putz (a.putz@skynamics.com), and
- * Marc Wilhelm Kuester.</p>
+ * Andreas Putz (a.putz@skynamics.com), Marc Wilhelm Kuester and Gerke Geurts.</p>
  */
 
-class RtfHeader extends RtfContainer {
+public class RtfHeader extends RtfContainer {
     private static final String CHARSET = "ansi";
+    
     private final Map userProperties = new HashMap();
+    private final RtfColorTable colorTable;
+    private final RtfFontTable fontTable;
+    private final RtfListTable listTable;
 
     /** Create an RTF header
      * @param f the parent RTF file
      */
     RtfHeader(RtfFile f) throws IOException {
         super(f);
-        new RtfFontTable(this);
+        colorTable = new RtfColorTable(this);
+        fontTable = new RtfFontTable(this);
         new RtfGenerator(this);
+        listTable = new RtfListTable(this);
     }
 
+    /** Gets {@link RtfColorTable} for RTF file. */
+    public RtfColorTable getColorTable()
+    {
+        return colorTable;
+    }
+
+    /** Gets {@link RtfFontTable} for RTF file. */
+    public RtfFontTable getFontTable()
+    {
+        return fontTable;
+    }
+    
+    /** Gets {@link RtfListTable} for RTF file. */
+    public RtfListTable getListTable()
+    {
+        return listTable;
+    }
+    
     /** {@inheritDoc} 
      * Overridden to write our own data before our children's data.
      */
     protected void writeRtfContent(RtfWriter w) throws IOException {
         w.writeControlWord(CHARSET);
         writeUserProperties(w);
-        RtfColorTable.getInstance().writeColors(w);
         super.writeRtfContent(w);
         RtfTemplate.getInstance().writeTemplate(w);
         RtfStyleSheetTable.getInstance().writeStyleSheet(w);
         writeFootnoteProperties(w);
-
     }
 
     /** write user properties if any */

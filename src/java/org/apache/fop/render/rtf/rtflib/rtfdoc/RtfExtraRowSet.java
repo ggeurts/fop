@@ -64,6 +64,7 @@ public class RtfExtraRowSet extends RtfContainer {
      *  This holds a cell with positioning information
      */
     private final List cells = new LinkedList();
+    
     private static class PositionedCell
     implements Comparable {
         private final RtfTableCell cell;

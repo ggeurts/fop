@@ -27,26 +27,26 @@ package org.apache.fop.render.rtf.rtflib.rtfdoc;
  */
 
 /**
- * <p>Simplistic options definitions for RTF generation.</p>
+ * <p>Interface for RtfElements that contain reference data.</p>
  *
- * <p>This work was authored by Bertrand Delacretaz (bdelacretaz@codeconsult.ch).</p>
+ * <p>This work was authored by Gerke Geurts.</p>
  */
-public class RtfOptions {
+public interface IRtfMappings {
     /**
-     * If this returns true, RtfParagraphs that have no children will not
-     * generate any RTF code
-     * @return true
+     * Gets the index of a color in the RTF color table
+     *
+     * @param red Color level red
+     * @param green Color level green
+     * @param blue Color level blue
+     * @return The number of the color in the table
      */
-    public boolean ignoreEmptyParagraphs() {
-        return true;
-    }
+    int getColorNumber(int red, int green, int blue);
 
     /**
-     * If this returns false, RtfContainer will not generate any RTF
-     * @param c RtfContainer to be tested
-     * @return true
+     * Gets the index of a font in the RTF font table
+     *
+     * @param family Font family name ('Helvetica')
+     * @return The number of the font in the table
      */
-    public boolean renderContainer(RtfContainer c) {
-        return true;
-    }
+    int getFontNumber(String name);
 }

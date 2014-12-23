@@ -58,6 +58,17 @@ public class RtfListStyle {
     public RtfList getRtfList() {
         return rtfListItem.getParentList();
     }
+    
+    /**
+     * Gets the index of a font in the RTF font table
+     *
+     * @param family Font family name ('Helvetica')
+     * @return The number of the font in the table
+     */
+    protected int getFontNumber(String name)
+    {
+        return rtfListItem.getRtfFile().getFontNumber(name);
+    }
 
     /**
      * Gets called before a RtfListItem has to be written.

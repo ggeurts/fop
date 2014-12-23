@@ -27,7 +27,8 @@ package org.apache.fop.render.rtf.rtflib.rtfdoc;
  */
 
 import java.io.IOException;
-import java.io.Writer;
+import java.util.Hashtable;
+import java.util.Vector;
 
 /**
  * <p>RTF font table.</p>
@@ -36,7 +37,13 @@ import java.io.Writer;
  * and Andreas Putz (a.putz@skynamics.com).</p>
  */
 
-class RtfFontTable extends RtfElement {
+public final class RtfFontTable extends RtfElement {
+    /** Index table for the fonts */
+    private final Hashtable fontIndex = new Hashtable();
+    /** Used fonts to this vector */
+    private final Vector fontTable = new Vector();
+
+    
     /** Create an RTF header */
     RtfFontTable(RtfHeader h) throws IOException {
         super(h);
@@ -45,11 +52,62 @@ class RtfFontTable extends RtfElement {
     /** write our contents to m_writer.
      * @param w the value of w */
     protected void writeRtfContent(RtfWriter w) throws IOException {
-        RtfFontManager.getInstance().writeFonts(w);
+        if (fontTable.isEmpty()) {
+            return;
+        }
+
+        w.newLine();
+        w.writeGroupMark(true);
+        w.writeControlWord("fonttbl");
+
+        int len = fontTable.size();
+        for (int i = 0; i < len; i++) {
+            w.writeGroupMark(true);
+            w.newLine();
+            w.writeControlWord("f", i);
+            w.write((String)fontTable.elementAt(i));
+            w.write(';');
+            w.writeGroupMark(false);
+        }
+
+        w.newLine();
+        w.writeGroupMark(false);
+    }
+
+    /**
+     * Gets the number of font in the font table
+     *
+     * @param family Font family name ('Helvetica')
+     *
+     * @return The number of the font in the table
+     */
+    public int getFontNumber(String family) {
+
+        Object o = fontIndex.get(getFontKey(family));
+        if (o == null) {
+            addFont(family);
+            return fontTable.size() - 1;
+        } else {
+            return (Integer)o;
+        }
     }
 
     /** true if this element would generate no "useful" RTF content */
     public boolean isEmpty() {
         return false;
+    }
+    
+    private String getFontKey(String family) {
+        return family.toLowerCase();
+    }
+
+    /**
+     * Adds a font to the table.
+     *
+     * @param family Identifier of font
+     */
+    private void addFont(String family) {
+        fontIndex.put(getFontKey(family), new Integer(fontTable.size()));
+        fontTable.addElement(family);
     }
 }

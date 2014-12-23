@@ -23,8 +23,8 @@ import java.awt.Color;
 
 import org.apache.fop.datatypes.Length;
 import org.apache.fop.render.DummyPercentBaseContext;
+import org.apache.fop.render.rtf.rtflib.rtfdoc.IRtfMappings;
 import org.apache.fop.render.rtf.rtflib.rtfdoc.RtfAttributes;
-import org.apache.fop.render.rtf.rtflib.rtfdoc.RtfColorTable;
 
 
 /**
@@ -72,13 +72,12 @@ public class FOPRtfAttributes extends RtfAttributes {
      * @param color value of attribute
      * @return this (which now contains the new entry)
      */
-    public RtfAttributes set(String name, Color color) {
+    public RtfAttributes set(String name, Color color, IRtfMappings rtfMappings) {
         // TODO: This code is duplicated in TextAttributesConverter
         int redComponent = color.getRed();
         int greenComponent = color.getGreen();
         int blueComponent = color.getBlue();
-        set(name, RtfColorTable.getInstance().getColorNumber(
-                redComponent, greenComponent, blueComponent).intValue());
+        set(name, rtfMappings.getColorNumber(redComponent, greenComponent, blueComponent));
         return this;
     }
 

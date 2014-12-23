@@ -3,12 +3,10 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package org.apache.fop.render.rtf;
+package org.apache.fop.render.rtf.rtflib;
 
 import java.io.IOException;
-import java.io.StringWriter;
 import org.apache.fop.render.rtf.rtflib.rtfdoc.RtfAttributes;
-import org.apache.fop.render.rtf.rtflib.rtfdoc.RtfDocumentArea;
 import org.apache.fop.render.rtf.rtflib.rtfdoc.RtfElement;
 import org.apache.fop.render.rtf.rtflib.rtfdoc.RtfFile;
 import org.apache.fop.render.rtf.rtflib.rtfdoc.RtfParagraph;
@@ -20,11 +18,14 @@ import static org.junit.Assert.*;
 import org.junit.Test;
 
 /**
- * Tests for RTF rendering API
+ * Unit tests for RTF rendering API
+ * 
  * @author ggeurts
  */
-public class CompactRtfTestCase
+public class CompactRtfTestCase extends BaseRtflibTest
 {
+    /* Avoid spaces between control words */
+    
     @Test
     public void writeTextAttributesWithoutSpaces() 
     throws Exception {
@@ -42,6 +43,9 @@ public class CompactRtfTestCase
         });
         assertThat(rtf, equalTo("{{\\b\\i\\ul hello}\\par}"));
     }
+    
+    
+    /* Avoid writing of redundant control words in textruns */
     
     @Test
     public void textrunIgnoresBlockAttributesThatDuplicateParentBlockAttributes()
@@ -139,21 +143,19 @@ public class CompactRtfTestCase
         assertThat(rtf, equalTo("\n{{\\sa10\\sb10 Some text}}"));
     }
     
-    private static String toRtf(RtfBuilder operation) 
-    throws IOException {
-        StringWriter writer = new StringWriter();
-
-        RtfFile rtfFile = new RtfFile(writer);
-        RtfDocumentArea rtfDocumentArea = rtfFile.startDocumentArea();
-        RtfSection section = rtfDocumentArea.newSection();
-
-        RtfElement result = operation.build(section);
-        result.writeRtf();
-        
-        return writer.getBuffer().toString();
-    }
+    /* Avoid writing unnecessary color table entries */
     
-    private interface RtfBuilder {
-        public RtfElement build(RtfSection section) throws IOException;
+    @Test
+    public void colorTableWritesUsedColorsOnly() 
+    throws Exception {
+        String rtf = toRtf(new RtfBuilder() {
+            @Override
+            public RtfElement build(RtfSection section) throws IOException {
+                return ((RtfFile)section.getParentOfClass(RtfFile.class))
+                        .getHeader()
+                        .getColorTable();
+            }
+        });
+        assertThat(rtf, equalTo("\n{#colortbl;\n}"));
     }
 }

@@ -52,7 +52,7 @@ public class RtfListStyleNumber extends RtfListStyle {
     throws IOException {
         w.writeGroupMark(true);
         w.writeControlWord("pntext");
-        w.writeControlWord("f" + RtfFontManager.getInstance().getFontNumber("Symbol"));
+        w.writeControlWord("f" + getFontNumber("Symbol"));
         w.writeControlWord("'b7");
         w.writeControlWord("tab");
         w.writeGroupMark(false);
