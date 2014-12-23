@@ -29,9 +29,6 @@ package org.apache.fop.render.rtf.rtflib.rtfdoc;
 import java.util.HashMap;
 import java.util.Iterator;
 
-import org.xml.sax.Attributes;
-import org.xml.sax.helpers.AttributesImpl;
-
 
 /**
  * <p>Attributes for RtfText.</p>
@@ -41,8 +38,22 @@ import org.xml.sax.helpers.AttributesImpl;
 
 public class RtfAttributes implements Cloneable {
 
-    private HashMap values = new HashMap();
+    private final HashMap values;
 
+    /** Creates empty RTF attribute set */
+    public RtfAttributes() {
+        values = new HashMap();
+    }
+    
+    /** 
+     * Creates clone of other RTF attribute set 
+     * @param other The RTF attributes to clone
+     */
+    public RtfAttributes(RtfAttributes other)
+    {
+        this.values = (HashMap)other.values.clone();
+    }
+    
     /**
      * Set attributes from another attributes object
      * @param attrs RtfAttributes object whose elements will be copied into this
@@ -69,13 +80,9 @@ public class RtfAttributes implements Cloneable {
                         set(name, value);
                     }
                 } else {
-                        set(name);
+                    set(name);
                 }
-
-
             }
-            // indicate the XSL attributes used to build the Rtf attributes
-            setXslAttributes(attrs.getXslAttributes());
         }
         return this;
     }
@@ -110,16 +117,7 @@ public class RtfAttributes implements Cloneable {
 
     /** {@inheritDoc} */
     public Object clone() throws CloneNotSupportedException {
-        RtfAttributes result = (RtfAttributes) super.clone();
-        result.values = (HashMap)values.clone();
-
-        // Added by Normand Masse
-        // indicate the XSL attributes used to build the Rtf attributes
-        if (xslAttributes != null) {
-            result.xslAttributes = new org.xml.sax.helpers.AttributesImpl(xslAttributes);
-        }
-
-        return result;
+        return new RtfAttributes(this);
     }
 
     /**
@@ -183,46 +181,6 @@ public class RtfAttributes implements Cloneable {
     /** @return an Iterator on all names that are set */
     public Iterator nameIterator() {
         return values.keySet().iterator();
-    }
-
-    private Attributes xslAttributes;
-
-    /**
-     * Added by Normand Masse
-     * Used for attribute inheritance
-     * @return Attributes
-     */
-    public Attributes getXslAttributes() {
-        return xslAttributes;
-    }
-
-    /**
-     * Added by Normand Masse
-     * Used for attribute inheritance
-     * @param pAttribs attributes
-     */
-    public void setXslAttributes(Attributes pAttribs) {
-        if (pAttribs == null) {
-            return;
-        }
-        // copy/replace the xsl attributes into the current attributes
-        if (xslAttributes != null) {
-            for (int i = 0; i < pAttribs.getLength(); i++) {
-                String wKey = pAttribs.getQName(i);
-                int wPos = xslAttributes.getIndex(wKey);
-                if (wPos == -1) {
-                    ((AttributesImpl)xslAttributes).addAttribute(pAttribs.getURI(i),
-                            pAttribs.getLocalName(i), pAttribs.getQName(i),
-                            pAttribs.getType(i), pAttribs.getValue(i));
-                } else {
-                    ((AttributesImpl)xslAttributes).setAttribute(wPos, pAttribs.getURI(i),
-                            pAttribs.getLocalName(i), pAttribs.getQName(i),
-                            pAttribs.getType(i), pAttribs.getValue(i));
-                }
-            }
-        } else {
-            xslAttributes = new org.xml.sax.helpers.AttributesImpl(pAttribs);
-        }
     }
 
     /**
