@@ -265,22 +265,6 @@ implements IRtfTextContainer, IRtfPageBreakContainer, IRtfHyperLinkContainer,
         closeCurrentHyperLink();
     }
 
-    /**
-     * Depending on RtfOptions, do not emit any RTF for empty paragraphs
-     * @return true if RTF should be written
-     */
-    protected boolean okToWriteRtf() {
-        boolean result = super.okToWriteRtf();
-
-        if (parent.getOptions().ignoreEmptyParagraphs() && getChildCount() == 0) {
-            // TODO should test that this is the last RtfParagraph in the cell instead
-            // of simply testing for last child??
-            result = false;
-        }
-
-        return result;
-    }
-
     /** true if we must write our own (non-text) attributes in the RTF */
     private boolean mustWriteAttributes() {
         boolean writeAttributes = false;

@@ -80,7 +80,7 @@ public abstract class RtfElement {
      * @throws IOException for I/O problems
      */
     public final void writeRtf(RtfWriter w) throws IOException {
-        if (w != null && okToWriteRtf()) {
+        if (w != null && !isEmpty()) {
             writeRtfPrefix(w);
             writeRtfContent(w);
             writeRtfSuffix(w);
@@ -108,14 +108,6 @@ public abstract class RtfElement {
      * @throws IOException for I/O problems
      */
     protected void writeRtfSuffix(RtfWriter w) throws IOException {
-    }
-
-    /**
-     * can be overridden to suppress all RTF output
-     * @return true if this object can be written into the RTF
-     */
-    protected boolean okToWriteRtf() {
-        return true;
     }
 
     /** debugging to given PrintWriter */
@@ -177,9 +169,8 @@ public abstract class RtfElement {
     public abstract boolean isEmpty();
 
     /**
-     * Added by Normand Masse
-     * Used for attribute inheritance
-     * @return RtfAttributes
+     * Gets the RTF attributes for this element.
+     * @return The {@link RtfAttributes}.
      */
     public RtfAttributes getRtfAttributes() {
         return attrib;

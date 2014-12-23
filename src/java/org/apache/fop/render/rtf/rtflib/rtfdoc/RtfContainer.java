@@ -41,8 +41,7 @@ import org.apache.fop.render.rtf.rtflib.exceptions.RtfStructureException;
  */
 
 public class RtfContainer extends RtfElement {
-    private LinkedList children;  // 'final' removed by Boris Poudérous on 07/22/2002
-    private RtfOptions options = new RtfOptions();
+    private final LinkedList children; 
 
     /** Create an RTF container as a child of given container */
     RtfContainer(RtfContainer parent) throws IOException {
@@ -53,14 +52,6 @@ public class RtfContainer extends RtfElement {
     RtfContainer(RtfContainer parent, RtfAttributes attr) throws IOException {
         super(parent, attr);
         children = new LinkedList();
-    }
-
-    /**
-     * set options
-     * @param opt options to set
-     */
-    public void setOptions(RtfOptions opt) {
-        options = opt;
     }
 
     /**
@@ -147,11 +138,6 @@ public class RtfContainer extends RtfElement {
         }
     }
 
-    /** return our options */
-    RtfOptions getOptions() {
-        return options;
-    }
-
     /** true if this (recursively) contains at least one RtfText object */
     boolean containsText() {
         boolean result = false;
@@ -190,29 +176,18 @@ public class RtfContainer extends RtfElement {
     }
 
     /**
-     * @return false if empty or if our options block writing
-     */
-    protected boolean okToWriteRtf() {
-        boolean result = super.okToWriteRtf() && !isEmpty();
-        if (result && !options.renderContainer(this)) {
-            result = false;
-        }
-        return result;
-    }
-
-    /**
      * @return true if this element would generate no "useful" RTF content,
      * i.e. (for RtfContainer) true if it has no children where isEmpty() is false
      */
     public boolean isEmpty() {
-        boolean result = true;
-        for (Iterator it = children.iterator(); it.hasNext();) {
-            final RtfElement e = (RtfElement)it.next();
-            if (!e.isEmpty()) {
-                result = false;
-                break;
+        if (!children.isEmpty()) {
+            for (Iterator it = children.iterator(); it.hasNext();) {
+                final RtfElement e = (RtfElement)it.next();
+                if (!e.isEmpty()) {
+                    return false;
+                }
             }
         }
-        return result;
+        return true;
     }
 }
