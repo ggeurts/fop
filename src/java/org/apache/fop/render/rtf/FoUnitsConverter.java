@@ -141,7 +141,11 @@ final class FoUnitsConverter {
         return (int)(result * 2.0);
     }
 
-    public float convertMptToTwips(int width) {
-        return width * POINT_TO_TWIPS / 1000;
+    public static float convertMptToTwips(int width) {
+        return width * POINT_TO_TWIPS / 1000f;
+    }
+
+    public static int convertTwipsToMpt(int width) {
+        return width * 1000 / (int)POINT_TO_TWIPS;
     }
 }

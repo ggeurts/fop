@@ -28,7 +28,6 @@ import org.apache.fop.fo.FObj;
 import org.apache.fop.render.rtf.RTFHandler;
 import org.apache.fop.render.rtf.RTFPlaceHolderHelper;
 import org.apache.fop.render.rtf.rtflib.exceptions.RtfException;
-import org.apache.fop.render.rtf.rtflib.rtfdoc.IRtfOptions;
 import org.apache.fop.render.rtf.rtflib.rtfdoc.RtfContainer;
 
 
@@ -53,20 +52,6 @@ public class BuilderContext {
 
     /** stack of TableContexts */
     private final Stack tableContexts = new Stack();
-
-    /** stack of IBuilders */
-    private final Stack builders = new Stack();
-
-    /** Rtf options */
-    private IRtfOptions options;
-
-    /**
-     * Construct a builder context.
-     * @param rtfOptions some options
-     */
-    public BuilderContext(IRtfOptions rtfOptions) {
-        options = rtfOptions;
-    }
 
     /** find first object of given class from top of stack s
      *  @return null if not found

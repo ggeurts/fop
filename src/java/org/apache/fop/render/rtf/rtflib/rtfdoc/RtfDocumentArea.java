@@ -41,6 +41,8 @@ extends RtfContainer {
     /**RtfPage attributes*/
     /** constant for enabling left and right footers */
     public static final String FACING_PAGES = "facingp";
+    /** constant for enabling mirroring of margins */
+    public static final String MARGIN_MIRROR = "margmirror";
     
     /** Create an RTF element as a child of given container */
     RtfDocumentArea(RtfFile f) {

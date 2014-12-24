@@ -80,6 +80,8 @@ public class RtfContainer extends RtfElement {
         return children;
     }
 
+    
+    
     /**
      * @return the number of children
      */
@@ -95,28 +97,24 @@ public class RtfContainer extends RtfElement {
         return children.isEmpty() ? null : (RtfElement)children.getLast();
     }
 
-    private int findChildren(RtfElement aChild, int iStart) {
-        for (Iterator it = this.getChildren().iterator(); it.hasNext();) {
-          final RtfElement e = (RtfElement)it.next();
-          if (aChild == e) {
-              return iStart;
-          } else if (e instanceof RtfContainer) {
-              int iFound = ((RtfContainer)e).findChildren(aChild, (iStart + 1));
-              if (iFound != -1) {
-                  return iFound;
-              }
-          }
-        }
-        return -1;
-    }
-
     /**
      * Find the passed child in the current container
      * @param aChild the child element
      * @return the depth (nested level) inside the current container
      */
     public int findChildren(RtfElement aChild) {
-        return findChildren(aChild, 0);
+        for (Iterator it = this.getChildren().iterator(); it.hasNext();) {
+          final RtfElement e = (RtfElement)it.next();
+          if (aChild == e) {
+              return 0;
+          } else if (e instanceof RtfContainer) {
+              int recursiveResult = ((RtfContainer)e).findChildren(aChild);
+              if (recursiveResult >= 0) {
+                  return recursiveResult + 1;
+              }
+          }
+        }
+        return -1;
     }
 
     /**

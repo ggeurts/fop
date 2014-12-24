@@ -28,6 +28,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
@@ -60,6 +61,7 @@ import org.apache.fop.fo.FONode;
 import org.apache.fop.fo.FOText;
 import org.apache.fop.fo.FObj;
 import org.apache.fop.fo.XMLObj;
+import org.apache.fop.fo.expr.NumericOp;
 import org.apache.fop.fo.flow.AbstractGraphics;
 import org.apache.fop.fo.flow.BasicLink;
 import org.apache.fop.fo.flow.Block;
@@ -90,17 +92,18 @@ import org.apache.fop.fo.pagination.Flow;
 import org.apache.fop.fo.pagination.PageSequence;
 import org.apache.fop.fo.pagination.PageSequenceMaster;
 import org.apache.fop.fo.pagination.Region;
+import org.apache.fop.fo.pagination.RegionBody;
 import org.apache.fop.fo.pagination.SimplePageMaster;
 import org.apache.fop.fo.pagination.StaticContent;
 import org.apache.fop.fo.properties.CommonBorderPaddingBackground;
+import org.apache.fop.fo.properties.CommonMarginBlock;
 import org.apache.fop.fo.properties.EnumLength;
 import org.apache.fop.fonts.FontSetup;
 import org.apache.fop.layoutmgr.inline.ImageLayout;
 import org.apache.fop.layoutmgr.table.ColumnSetup;
 import org.apache.fop.render.RendererEventProducer;
 import org.apache.fop.render.rtf.rtflib.exceptions.RtfException;
-import org.apache.fop.render.rtf.rtflib.rtfdoc.IRtfAfterContainer;
-import org.apache.fop.render.rtf.rtflib.rtfdoc.IRtfBeforeContainer;
+import org.apache.fop.render.rtf.rtflib.exceptions.RtfStructureException;
 import org.apache.fop.render.rtf.rtflib.rtfdoc.IRtfListContainer;
 import org.apache.fop.render.rtf.rtflib.rtfdoc.IRtfTableContainer;
 import org.apache.fop.render.rtf.rtflib.rtfdoc.IRtfTextrunContainer;
@@ -108,8 +111,8 @@ import org.apache.fop.render.rtf.rtflib.rtfdoc.ITableAttributes;
 import org.apache.fop.render.rtf.rtflib.rtfdoc.RtfAfter;
 import org.apache.fop.render.rtf.rtflib.rtfdoc.RtfAttributes;
 import org.apache.fop.render.rtf.rtflib.rtfdoc.RtfBefore;
+import org.apache.fop.render.rtf.rtflib.rtfdoc.RtfContainer;
 import org.apache.fop.render.rtf.rtflib.rtfdoc.RtfDocumentArea;
-import org.apache.fop.render.rtf.rtflib.rtfdoc.RtfElement;
 import org.apache.fop.render.rtf.rtflib.rtfdoc.RtfExternalGraphic;
 import org.apache.fop.render.rtf.rtflib.rtfdoc.RtfFile;
 import org.apache.fop.render.rtf.rtflib.rtfdoc.RtfFootnote;
@@ -133,29 +136,19 @@ import org.apache.fop.render.rtf.rtflib.tools.TableContext;
  * the FO Tree sent to this structure handler.
  */
 public class RTFHandler extends FOEventHandler {
+    private final static Log log = LogFactory.getLog(RTFHandler.class);
+
+    private final OutputStream os;
+    private final BuilderContext builderContext = new BuilderContext();
+    private final PercentContext percentManager = new PercentContext();
 
     private RtfFile rtfFile;
-    private final OutputStream os;
-    private static Log log = LogFactory.getLog(RTFHandler.class);
-    private RtfSection sect;
     private RtfDocumentArea docArea;
+    private final Map rtfRegions = new HashMap();   // Maps region name to RtfContainer
+    
     private boolean bDefer;              //true, if each called handler shall be
                                          //processed at later time.
-    private boolean bPrevHeaderSpecified; //true, if there has been a
-                                                  //header in any page-sequence
-    private boolean bPrevFooterSpecified; //true, if there has been a
-                                                  //footer in any page-sequence
-    private boolean bHeaderSpecified;  //true, if there is a header
-                                               //in current page-sequence
-    private boolean bFooterSpecified;  //true, if there is a footer
-                                               //in current page-sequence
-    private BuilderContext builderContext = new BuilderContext(null);
-
-    private SimplePageMaster pagemaster;
-
     private int nestedTableDepth = 1;
-
-    private PercentContext percentManager = new PercentContext();
 
 
     /**
@@ -172,26 +165,14 @@ public class RTFHandler extends FOEventHandler {
         FontSetup.setup(fontInfo, null, userAgent.getResourceResolver(), base14Kerning);
     }
 
-    /**
-     * Central exception handler for I/O exceptions.
-     * @param ioe IOException to handle
-     */
-    protected void handleIOTrouble(IOException ioe) {
-        RendererEventProducer eventProducer = RendererEventProducer.Provider.get(
-                getUserAgent().getEventBroadcaster());
-        eventProducer.ioError(this, ioe);
+    public RtfFile getRtfFile()
+    {
+        return rtfFile;
     }
-
+    
     /** {@inheritDoc} */
     public void startDocument() throws SAXException {
-        // TODO sections should be created
-        try {
-            rtfFile = new RtfFile(new OutputStreamWriter(os));
-            docArea = rtfFile.startDocumentArea();
-        } catch (IOException ioe) {
-            // TODO could we throw Exception in all FOEventHandler events?
-            throw new SAXException(ioe);
-        }
+        rtfFile = new RtfFile(new OutputStreamWriter(os));
     }
 
     /** {@inheritDoc} */
@@ -199,69 +180,178 @@ public class RTFHandler extends FOEventHandler {
         try {
             rtfFile.flush();
         } catch (IOException ioe) {
-            // TODO could we throw Exception in all FOEventHandler events?
-            throw new SAXException(ioe);
+            RendererEventProducer eventProducer = RendererEventProducer.Provider.get(
+                    getUserAgent().getEventBroadcaster());
+            eventProducer.ioError(this, ioe);
         }
+        docArea = null;
     }
 
     /** {@inheritDoc} */
     public void startPageSequence(PageSequence pageSeq)  {
-        try {
-            //This is needed for region handling
-            if (this.pagemaster == null) {
-                String reference = pageSeq.getMasterReference();
-                this.pagemaster
-                        = pageSeq.getRoot().getLayoutMasterSet().getSimplePageMaster(reference);
-                if (this.pagemaster == null) {
-                    RTFEventProducer eventProducer = RTFEventProducer.Provider.get(
-                            getUserAgent().getEventBroadcaster());
-                    eventProducer.onlySPMSupported(this, reference, pageSeq.getLocator());
-                    PageSequenceMaster master
-                        = pageSeq.getRoot().getLayoutMasterSet().getPageSequenceMaster(reference);
-                    if (pageSeq.getMainFlow() != null) {
-                        this.pagemaster = master.getNextSimplePageMaster(
-                                false, false, false, false, pageSeq.getMainFlow().getFlowName());
-                    }
-                }
-            }
+        if (bDefer) {
+            return;
+        }
+         
+        SimplePageMaster pageMaster = pageSeq.getNextSimplePageMaster(1, false, false, false);
+        if (pageMaster == null) {
+            RTFEventProducer eventProducer = RTFEventProducer.Provider.get(
+                    getUserAgent().getEventBroadcaster());
+            eventProducer.noSPMFound(this, pageSeq.getLocator());
+            return;
+        }
 
-            if (bDefer) {
-                return;
-            }
-
-            //read page size and margins, if specified
-            //only simple-page-master supported, so pagemaster may be null
-            if (pagemaster != null) {
-                // TODO: only set document properties once
+        if (docArea == null)
+        {
+            try {
+                docArea = rtfFile.startDocumentArea();
                 docArea.getRtfAttributes().set(
-                        PageAttributesConverter.convertPageAttributes(
-                                pagemaster));
-            } else {
-                RTFEventProducer eventProducer = RTFEventProducer.Provider.get(
-                        getUserAgent().getEventBroadcaster());
-                eventProducer.noSPMFound(this, pageSeq.getLocator());
+                    PageAttributesConverter.convertPageAttributes(pageMaster));
+            } catch (RtfStructureException ex) {
+                throw new RuntimeException(ex);
             }
+        } 
 
-            sect = docArea.newSection();
-            // Configure section page sizes and columns
+        rtfRegions.clear();
+
+        RtfSection rtfSection = docArea.newSection();
+        rtfSection.getRtfAttributes().set(
+            PageAttributesConverter.convertSectionAttributes(pageMaster));
+        builderContext.pushContainer(rtfSection);
+
+        Region bodyRegion = pageMaster.getRegion(Constants.FO_REGION_BODY);
+        if (bodyRegion != null) {
+            rtfRegions.put(bodyRegion.getRegionName(), rtfSection);
+        }
+        createRtfSectionHeadersAndFooters(pageSeq, rtfSection);
+
+        int usablePageWidth = getUsablePageWidthInMpt(pageMaster, rtfSection);
+        percentManager.setDimension(pageSeq, usablePageWidth);
+    }
+
+    private void createRtfSectionHeadersAndFooters(PageSequence pageSeq, 
+            RtfSection rtfSection) {
+        SimplePageMaster firstPageMaster = 
+                pageSeq.getNextSimplePageMaster(1, true, false, false);
+        SimplePageMaster rightPageMaster = 
+                pageSeq.getNextSimplePageMaster(1, false, false, false);
+        SimplePageMaster leftPageMaster = 
+                pageSeq.getNextSimplePageMaster(2, false, false, false);
+
+        if (firstPageMaster != null 
+                && firstPageMaster != rightPageMaster
+                && firstPageMaster != leftPageMaster) {
+            // Treat first page differently from subsequent pages
+            rtfSection.getRtfAttributes().set(RtfPage.TITLE_PAGE);
+            createRtfHeaderAndFooter(firstPageMaster, rtfSection,
+                    RtfBefore.HEADER_FIRST, RtfAfter.FOOTER_FIRST);
+        }
+
+        if (rightPageMaster != null && rightPageMaster != leftPageMaster) {
+            // Treat left and right pages differently.
+            RtfAttributes docAreaAtts = docArea.getRtfAttributes();
+            docAreaAtts.set(RtfDocumentArea.FACING_PAGES);
             
-            builderContext.pushContainer(sect);
-
-            //Calculate usable page width for this flow
-            int useAblePageWidth = pagemaster.getPageWidth().getValue()
-                - pagemaster.getCommonMarginBlock().marginLeft.getValue()
-                - pagemaster.getCommonMarginBlock().marginRight.getValue()
-                - docArea.getRtfAttributes().getValueAsInteger(RtfPage.MARGIN_LEFT).intValue()
-                - docArea.getRtfAttributes().getValueAsInteger(RtfPage.MARGIN_RIGHT).intValue();
-            percentManager.setDimension(pageSeq, useAblePageWidth);
-
-            bHeaderSpecified = false;
-            bFooterSpecified = false;
-        } catch (IOException ioe) {
-            handleIOTrouble(ioe);
+            // RTF spec does not support specification of different margins for 
+            // odd and even pages. However, mirroring of margins is supported. 
+            // We apply the margins for odd pages to the section. If the margins
+            // of even pages are different, we will enable margin mirroring.
+            if (!haveSameMargins(rightPageMaster, leftPageMaster)) {
+                docAreaAtts.set(RtfDocumentArea.MARGIN_MIRROR);
+                log.warn("Ignoring margins for page master " + leftPageMaster.getMasterName());
+            }
+            
+            createRtfHeaderAndFooter(rightPageMaster, rtfSection,
+                    RtfBefore.HEADER_RIGHT, RtfAfter.FOOTER_RIGHT);
+            createRtfHeaderAndFooter(leftPageMaster, rtfSection,
+                    RtfBefore.HEADER_LEFT, RtfAfter.FOOTER_LEFT);
+        } else {
+            // Treat left and right pages the same
+            SimplePageMaster pageMaster = rightPageMaster != null
+                    ? rightPageMaster
+                    : leftPageMaster;
+            createRtfHeaderAndFooter(pageMaster, rtfSection,
+                    RtfBefore.HEADER, RtfAfter.FOOTER);
+        }
+    }
+    
+    private void createRtfHeaderAndFooter(SimplePageMaster pageMaster, 
+            RtfSection rtfSection, String rtfHeaderAttr, String rtfFooterAttr)
+    {
+        Region regionBefore = pageMaster != null
+                ? pageMaster.getRegion(Constants.FO_REGION_BEFORE)
+                : null;
+        createRtfHeader(regionBefore, rtfSection, rtfHeaderAttr);
+        
+        Region regionAfter = pageMaster != null
+                ? pageMaster.getRegion(Constants.FO_REGION_AFTER)
+                : null;
+        createRtfFooter(regionAfter, rtfSection, rtfFooterAttr);
+    }
+    
+    private void createRtfHeader(Region region, 
+            RtfSection rtfSection, String rtfHeaderAttr) {
+        RtfAttributes headerAttrs = new RtfAttributes();
+        headerAttrs.set(rtfHeaderAttr);
+        RtfBefore header = rtfSection.newBefore(headerAttrs);
+        if (region != null) {
+            rtfRegions.put(region.getRegionName(), header);
         }
     }
 
+    private void createRtfFooter(Region region, 
+            RtfSection rtfSection, String rtfFooterAttr) {
+        RtfAttributes footerAttrs = new RtfAttributes();
+        footerAttrs.set(rtfFooterAttr);
+        RtfAfter footer = rtfSection.newAfter(footerAttrs);
+        if (region != null) {
+            rtfRegions.put(region.getRegionName(), footer);
+        }
+    }
+    
+    private static boolean haveSameMargins(
+            SimplePageMaster left, SimplePageMaster right) {
+        if (left == null && right == null) return true;
+        if (left == null || right == null) return false;
+        
+        if (!haveSameMargins(
+                left.getCommonMarginBlock(), 
+                right.getCommonMarginBlock())) {
+            return false;
+        }
+        
+        RegionBody leftBody = (RegionBody)left.getRegion(Constants.FO_REGION_BODY);
+        RegionBody rightBody = (RegionBody)right.getRegion(Constants.FO_REGION_BODY);
+        return haveSameMargins(
+                leftBody.getCommonMarginBlock(), 
+                rightBody.getCommonMarginBlock());
+    }
+
+    private static boolean haveSameMargins(
+            CommonMarginBlock left, CommonMarginBlock right) {
+        if (left == null && right == null) return true;
+        if (left == null || right == null) return false;
+        return left.marginLeft.getValue() == right.marginLeft.getValue()
+                && left.marginTop.getValue() == right.marginTop.getValue()                
+                && left.marginRight.getValue() == right.marginRight.getValue()                
+                && left.marginBottom.getValue() == right.marginBottom.getValue();
+    }
+    
+    private int getUsablePageWidthInMpt(
+            SimplePageMaster pageMaster, RtfSection rtfSection) {
+        CommonMarginBlock pageMargin = pageMaster.getCommonMarginBlock();
+        RtfAttributes rtfSectionAttr = rtfSection.getRtfAttributes();
+        
+        return pageMaster.getPageWidth().getValue()
+                - pageMargin.marginLeft.getValue()
+                - pageMargin.marginRight.getValue()
+                - FoUnitsConverter.convertTwipsToMpt(
+                        rtfSectionAttr.getValueAsInteger(RtfSection.MARGIN_LEFT))
+                - FoUnitsConverter.convertTwipsToMpt(
+                        rtfSectionAttr.getValueAsInteger(RtfSection.MARGIN_RIGHT));    
+    }
+            
+    
     /** {@inheritDoc} */
     public void endPageSequence(PageSequence pageSeq) {
         if (bDefer) {
@@ -270,13 +360,11 @@ public class RTFHandler extends FOEventHandler {
             //Now process all deferred FOs.
             bDefer = false;
             recurseFONode(pageSeq);
-            this.pagemaster = null;
             bDefer = true;
 
             return;
         } else {
             builderContext.popContainer(RtfSection.class, this);
-            this.pagemaster = null;
         }
     }
 
@@ -286,85 +374,12 @@ public class RTFHandler extends FOEventHandler {
             return;
         }
 
-        try {
-            log.debug("starting flow: " + fl.getFlowName());
-            boolean handled = false;
-            Region regionBody = pagemaster.getRegion(Constants.FO_REGION_BODY);
-            Region regionBefore = pagemaster.getRegion(Constants.FO_REGION_BEFORE);
-            Region regionAfter = pagemaster.getRegion(Constants.FO_REGION_AFTER);
-            if (fl.getFlowName().equals(regionBody.getRegionName())) {
-                // if there is no header in current page-sequence but there has been
-                // a header in a previous page-sequence, insert an empty header.
-                if (bPrevHeaderSpecified && !bHeaderSpecified) {
-                    RtfAttributes attr = new RtfAttributes();
-                    attr.set(RtfBefore.HEADER);
-
-                    final IRtfBeforeContainer contBefore
-                        = (IRtfBeforeContainer)builderContext.getContainer(
-                                IRtfBeforeContainer.class, true, this);
-                    contBefore.newBefore(attr);
-                }
-
-                // if there is no footer in current page-sequence but there has been
-                // a footer in a previous page-sequence, insert an empty footer.
-                if (bPrevFooterSpecified && !bFooterSpecified) {
-                    RtfAttributes attr = new RtfAttributes();
-                    attr.set(RtfAfter.FOOTER);
-
-                    final IRtfAfterContainer contAfter
-                        = (IRtfAfterContainer)builderContext.getContainer(
-                                IRtfAfterContainer.class, true, this);
-                    contAfter.newAfter(attr);
-                }
-                handled = true;
-            } else if (regionBefore != null
-                    && fl.getFlowName().equals(regionBefore.getRegionName())) {
-                bHeaderSpecified = true;
-                bPrevHeaderSpecified = true;
-
-                final IRtfBeforeContainer c
-                    = (IRtfBeforeContainer)builderContext.getContainer(
-                        IRtfBeforeContainer.class,
-                        true, this);
-
-                RtfAttributes beforeAttributes = ((RtfElement)c).getRtfAttributes();
-                if (beforeAttributes == null) {
-                    beforeAttributes = new RtfAttributes();
-                }
-                beforeAttributes.set(RtfBefore.HEADER);
-
-                RtfBefore before = c.newBefore(beforeAttributes);
-                builderContext.pushContainer(before);
-                handled = true;
-            } else if (regionAfter != null
-                    && fl.getFlowName().equals(regionAfter.getRegionName())) {
-                bFooterSpecified = true;
-                bPrevFooterSpecified = true;
-
-                final IRtfAfterContainer c
-                    = (IRtfAfterContainer)builderContext.getContainer(
-                        IRtfAfterContainer.class,
-                        true, this);
-
-                RtfAttributes afterAttributes = ((RtfElement)c).getRtfAttributes();
-                if (afterAttributes == null) {
-                    afterAttributes = new RtfAttributes();
-                }
-
-                afterAttributes.set(RtfAfter.FOOTER);
-
-                RtfAfter after = c.newAfter(afterAttributes);
-                builderContext.pushContainer(after);
-                handled = true;
-            }
-            if (!handled) {
-                log.warn("A " + fl.getLocalName() + " has been skipped: " + fl.getFlowName());
-            }
-        } catch (IOException ioe) {
-            handleIOTrouble(ioe);
-        } catch (Exception e) {
-            log.error("startFlow: " + e.getMessage());
-            throw new RuntimeException(e.getMessage());
+        log.debug("starting flow: " + fl.getFlowName());
+        RtfContainer rtfContainer = (RtfContainer) rtfRegions.get(fl.getFlowName());
+        if (rtfContainer != null) {
+            builderContext.pushContainer(rtfContainer);
+        } else {
+            log.warn("A " + fl.getLocalName() + " has been skipped: " + fl.getFlowName());
         }
     }
 
@@ -374,22 +389,10 @@ public class RTFHandler extends FOEventHandler {
             return;
         }
 
-        try {
-            Region regionBody = pagemaster.getRegion(Constants.FO_REGION_BODY);
-            Region regionBefore = pagemaster.getRegion(Constants.FO_REGION_BEFORE);
-            Region regionAfter = pagemaster.getRegion(Constants.FO_REGION_AFTER);
-            if (fl.getFlowName().equals(regionBody.getRegionName())) {
-                //just do nothing
-            } else if (regionBefore != null
-                    && fl.getFlowName().equals(regionBefore.getRegionName())) {
-                builderContext.popContainer(RtfBefore.class, this);
-            } else if (regionAfter != null
-                    && fl.getFlowName().equals(regionAfter.getRegionName())) {
-                builderContext.popContainer(RtfAfter.class, this);
-            }
-        } catch (Exception e) {
-            log.error("endFlow: " + e.getMessage());
-            throw new RuntimeException(e.getMessage());
+        RtfContainer rtfContainer = (RtfContainer) rtfRegions.get(fl.getFlowName());
+        if (rtfContainer != null) 
+        {
+            builderContext.popContainer(rtfContainer.getClass(), this);
         }
     }
 
@@ -413,8 +416,6 @@ public class RTFHandler extends FOEventHandler {
             textrun.addParagraphBreak();
             textrun.pushBlockAttributes(rtfAttr);
             textrun.addBookmark(bl.getId());
-        } catch (IOException ioe) {
-            handleIOTrouble(ioe);
         } catch (Exception e) {
             log.error("startBlock: " + e.getMessage());
             throw new RuntimeException("Exception: " + e);
@@ -445,9 +446,6 @@ public class RTFHandler extends FOEventHandler {
 
             int breakValue = toRtfBreakValue(bl.getBreakAfter());
             textrun.popBlockAttributes(breakValue);
-
-        } catch (IOException ioe) {
-            handleIOTrouble(ioe);
         } catch (Exception e) {
             log.error("startBlock:" + e.getMessage());
             throw new RuntimeException(e.getMessage());
@@ -473,8 +471,6 @@ public class RTFHandler extends FOEventHandler {
 
             textrun.addParagraphBreak();
             textrun.pushBlockAttributes(rtfAttr);
-        } catch (IOException ioe) {
-            handleIOTrouble(ioe);
         } catch (Exception e) {
             log.error("startBlock: " + e.getMessage());
             throw new RuntimeException("Exception: " + e);
@@ -490,17 +486,13 @@ public class RTFHandler extends FOEventHandler {
         try {
             IRtfTextrunContainer container
                 = (IRtfTextrunContainer)builderContext.getContainer(
-                    IRtfTextrunContainer.class,
-                    true, this);
+                        IRtfTextrunContainer.class, true, this);
 
             RtfTextrun textrun = container.getTextrun();
 
             textrun.addParagraphBreak();
             int breakValue = toRtfBreakValue(bl.getBreakAfter());
             textrun.popBlockAttributes(breakValue);
-
-        } catch (IOException ioe) {
-            handleIOTrouble(ioe);
         } catch (Exception e) {
             log.error("startBlock:" + e.getMessage());
             throw new RuntimeException(e.getMessage());
@@ -547,19 +539,17 @@ public class RTFHandler extends FOEventHandler {
             RtfAttributes borderAttributes = new RtfAttributes();
 
             BorderAttributesConverter.makeBorder(border, CommonBorderPaddingBackground.BEFORE,
-                    borderAttributes, ITableAttributes.CELL_BORDER_TOP);
+                    borderAttributes, ITableAttributes.CELL_BORDER_TOP, rtfFile);
             BorderAttributesConverter.makeBorder(border, CommonBorderPaddingBackground.AFTER,
-                    borderAttributes, ITableAttributes.CELL_BORDER_BOTTOM);
+                    borderAttributes, ITableAttributes.CELL_BORDER_BOTTOM, rtfFile);
             BorderAttributesConverter.makeBorder(border, CommonBorderPaddingBackground.START,
-                    borderAttributes, ITableAttributes.CELL_BORDER_LEFT);
+                    borderAttributes, ITableAttributes.CELL_BORDER_LEFT, rtfFile);
             BorderAttributesConverter.makeBorder(border, CommonBorderPaddingBackground.END,
-                    borderAttributes,  ITableAttributes.CELL_BORDER_RIGHT);
+                    borderAttributes,  ITableAttributes.CELL_BORDER_RIGHT, rtfFile);
 
             table.setBorderAttributes(borderAttributes);
 
             builderContext.pushContainer(table);
-        } catch (IOException ioe) {
-            handleIOTrouble(ioe);
         } catch (Exception e) {
             log.error("startTable:" + e.getMessage());
             throw new RuntimeException(e.getMessage());
@@ -603,9 +593,6 @@ public class RTFHandler extends FOEventHandler {
 
     /** {@inheritDoc} */
     public void endColumn(TableColumn tc) {
-        if (bDefer) {
-            return;
-        }
     }
 
     /** {@inheritDoc} */
@@ -644,13 +631,11 @@ public class RTFHandler extends FOEventHandler {
 
             IRtfTextrunContainer container
                 = (IRtfTextrunContainer)builderContext.getContainer(
-                    IRtfTextrunContainer.class, true, this);
+                        IRtfTextrunContainer.class, true, this);
 
             RtfTextrun textrun = container.getTextrun();
             textrun.pushInlineAttributes(rtfAttr);
             textrun.addBookmark(inl.getId());
-        } catch (IOException ioe) {
-            handleIOTrouble(ioe);
         } catch (FOPException fe) {
             log.error("startInline:" + fe.getMessage());
             throw new RuntimeException(fe.getMessage());
@@ -669,12 +654,10 @@ public class RTFHandler extends FOEventHandler {
         try {
             IRtfTextrunContainer container
                 = (IRtfTextrunContainer)builderContext.getContainer(
-                    IRtfTextrunContainer.class, true, this);
+                        IRtfTextrunContainer.class, true, this);
 
             RtfTextrun textrun = container.getTextrun();
             textrun.popInlineAttributes();
-        } catch (IOException ioe) {
-            handleIOTrouble(ioe);
         } catch (Exception e) {
             log.error("startInline:" + e.getMessage());
             throw new RuntimeException(e.getMessage());
@@ -688,11 +671,9 @@ public class RTFHandler extends FOEventHandler {
 
         try {
             RtfAttributes atts = TableAttributesConverter.convertTablePartAttributes(part);
-
-            RtfTable tbl = (RtfTable)builderContext.getContainer(RtfTable.class, true, this);
+            RtfTable tbl = (RtfTable)builderContext.getContainer(
+                    RtfTable.class, true, this);
             tbl.setHeaderAttribs(atts);
-        } catch (IOException ioe) {
-            handleIOTrouble(ioe);
         } catch (Exception e) {
             log.error("startPart: " + e.getMessage());
             throw new RuntimeException(e.getMessage());
@@ -707,8 +688,6 @@ public class RTFHandler extends FOEventHandler {
         try {
             RtfTable tbl = (RtfTable)builderContext.getContainer(RtfTable.class, true, this);
             tbl.setHeaderAttribs(null);
-        } catch (IOException ioe) {
-            handleIOTrouble(ioe);
         } catch (Exception e) {
             log.error("endPart: " + e.getMessage());
             throw new RuntimeException(e.getMessage());
@@ -744,7 +723,7 @@ public class RTFHandler extends FOEventHandler {
                     true, null);
 
             RtfAttributes atts = TableAttributesConverter.convertRowAttributes(tr,
-                    tbl.getHeaderAttribs());
+                    tbl.getHeaderAttribs(), rtfFile);
 
             if (tr.getParent() instanceof TableHeader) {
                 atts.set(ITableAttributes.ATTR_HEADER);
@@ -754,8 +733,6 @@ public class RTFHandler extends FOEventHandler {
 
             // reset column iteration index to correctly access column widths
             builderContext.getTableContext().selectFirstColumn();
-        } catch (IOException ioe) {
-            handleIOTrouble(ioe);
         } catch (Exception e) {
             log.error("startRow: " + e.getMessage());
             throw new RuntimeException(e.getMessage());
@@ -787,13 +764,10 @@ public class RTFHandler extends FOEventHandler {
 
                 tctx.selectNextColumn();
             }
-        } catch (IOException ioe) {
-            handleIOTrouble(ioe);
         } catch (Exception e) {
             log.error("endRow: " + e.getMessage());
             throw new RuntimeException(e.getMessage());
         }
-
 
         builderContext.popContainer(RtfTableRow.class, this);
         builderContext.getTableContext().decreaseRowSpannings();
@@ -883,8 +857,6 @@ public class RTFHandler extends FOEventHandler {
             percentManager.setDimension(tc, (int)width * 50);
 
             builderContext.pushContainer(cell);
-        } catch (IOException ioe) {
-            handleIOTrouble(ioe);
         } catch (Exception e) {
             log.error("startCell: " + e.getMessage());
             throw new RuntimeException(e.getMessage());
@@ -899,7 +871,6 @@ public class RTFHandler extends FOEventHandler {
         try {
             RtfTableCell cell = (RtfTableCell)builderContext.getContainer(RtfTableCell.class, false, this);
             cell.finish();
-
         } catch (Exception e) {
             log.error("endCell: " + e.getMessage());
             throw new RuntimeException(e.getMessage());
@@ -924,8 +895,6 @@ public class RTFHandler extends FOEventHandler {
             final RtfList newList = c.newList(
                 ListAttributesConverter.convertAttributes(lb));
             builderContext.pushContainer(newList);
-        } catch (IOException ioe) {
-            handleIOTrouble(ioe);
         } catch (FOPException fe) {
             log.error("startList: " + fe.getMessage());
             throw new RuntimeException(fe.getMessage());
@@ -974,8 +943,6 @@ public class RTFHandler extends FOEventHandler {
             }
 
             builderContext.pushContainer(list.newListItem());
-        } catch (IOException ioe) {
-            handleIOTrouble(ioe);
         } catch (Exception e) {
             log.error("startList: " + e.getMessage());
             throw new RuntimeException(e.getMessage());
@@ -1003,8 +970,6 @@ public class RTFHandler extends FOEventHandler {
 
             RtfListItemLabel label = item.new RtfListItemLabel(item);
             builderContext.pushContainer(label);
-        } catch (IOException ioe) {
-            handleIOTrouble(ioe);
         } catch (Exception e) {
             log.error("startPageNumber: " + e.getMessage());
             throw new RuntimeException(e.getMessage());
@@ -1067,9 +1032,6 @@ public class RTFHandler extends FOEventHandler {
             }
 
             builderContext.pushContainer(link);
-
-        } catch (IOException ioe) {
-            handleIOTrouble(ioe);
         } catch (Exception e) {
             log.error("startLink: " + e.getMessage());
             throw new RuntimeException(e.getMessage());
@@ -1303,9 +1265,6 @@ public class RTFHandler extends FOEventHandler {
             RtfFootnote rtfFootnote = textrun.addFootnote();
 
             builderContext.pushContainer(rtfFootnote);
-
-        } catch (IOException ioe) {
-            handleIOTrouble(ioe);
         } catch (Exception e) {
             log.error("startFootnote: " + e.getMessage());
             throw new RuntimeException("Exception: " + e);
@@ -1334,8 +1293,6 @@ public class RTFHandler extends FOEventHandler {
                     true, this);
 
             rtfFootnote.startBody();
-        } catch (IOException ioe) {
-            handleIOTrouble(ioe);
         } catch (Exception e) {
             log.error("startFootnoteBody: " + e.getMessage());
             throw new RuntimeException("Exception: " + e);
@@ -1355,8 +1312,6 @@ public class RTFHandler extends FOEventHandler {
                     true, this);
 
             rtfFootnote.endBody();
-        } catch (IOException ioe) {
-            handleIOTrouble(ioe);
         } catch (Exception e) {
             log.error("endFootnoteBody: " + e.getMessage());
             throw new RuntimeException("Exception: " + e);
@@ -1374,13 +1329,13 @@ public class RTFHandler extends FOEventHandler {
             RtfAttributes rtfAttr = TextAttributesConverter
                     .convertLeaderAttributes(l, percentManager, rtfFile);
 
-            IRtfTextrunContainer container
-                  = (IRtfTextrunContainer)builderContext.getContainer(
-                      IRtfTextrunContainer.class, true, this);
+            IRtfTextrunContainer container = 
+                    (IRtfTextrunContainer)builderContext.getContainer(
+                            IRtfTextrunContainer.class, true, this);
             RtfTextrun textrun = container.getTextrun();
 
             textrun.addLeader(rtfAttr);
-        } catch (IOException e) {
+        } catch (RtfException e) {
             log.error("startLeader: " + e.getMessage());
             throw new RuntimeException(e.getMessage());
         } catch (FOPException e) {
@@ -1400,8 +1355,8 @@ public class RTFHandler extends FOEventHandler {
 
         try {
             IRtfTextrunContainer container
-                = (IRtfTextrunContainer)builderContext.getContainer(
-                    IRtfTextrunContainer.class, true, this);
+                    = (IRtfTextrunContainer)builderContext.getContainer(
+                            IRtfTextrunContainer.class, true, this);
 
             RtfTextrun textrun = container.getTextrun();
             RtfAttributes rtfAttr = TextAttributesConverter
@@ -1410,8 +1365,6 @@ public class RTFHandler extends FOEventHandler {
             textrun.pushInlineAttributes(rtfAttr);
             textrun.addString(characters.toString());
             textrun.popInlineAttributes();
-        } catch (IOException ioe) {
-            handleIOTrouble(ioe);
         } catch (Exception e) {
             log.error("characters:" + e.getMessage());
             throw new RuntimeException(e.getMessage());
@@ -1434,8 +1387,6 @@ public class RTFHandler extends FOEventHandler {
 
             RtfTextrun textrun = container.getTextrun();
             textrun.addPageNumber(rtfAttr);
-        } catch (IOException ioe) {
-            handleIOTrouble(ioe);
         } catch (Exception e) {
             log.error("startPageNumber: " + e.getMessage());
             throw new RuntimeException(e.getMessage());
@@ -1457,12 +1408,11 @@ public class RTFHandler extends FOEventHandler {
         try {
 
             IRtfTextrunContainer container
-                  = (IRtfTextrunContainer)builderContext.getContainer(
-                      IRtfTextrunContainer.class, true, this);
+                    = (IRtfTextrunContainer)builderContext.getContainer(
+                            IRtfTextrunContainer.class, true, this);
             RtfTextrun textrun = container.getTextrun();
 
             textrun.addPageNumberCitation(l.getRefId());
-
         } catch (Exception e) {
             log.error("startPageNumberCitation: " + e.getMessage());
             throw new RuntimeException(e.getMessage());
@@ -1477,16 +1427,12 @@ public class RTFHandler extends FOEventHandler {
         try {
 
             IRtfTextrunContainer container
-                  = (IRtfTextrunContainer)builderContext.getContainer(
-                      IRtfTextrunContainer.class, true, this);
+                    = (IRtfTextrunContainer)builderContext.getContainer(
+                            IRtfTextrunContainer.class, true, this);
             RtfTextrun textrun = container.getTextrun();
 
             textrun.addPageNumberCitation(l.getRefId());
-
         } catch (RtfException e) {
-            log.error("startPageNumberCitationLast: " + e.getMessage());
-            throw new RuntimeException(e.getMessage());
-        } catch (IOException e) {
             log.error("startPageNumberCitationLast: " + e.getMessage());
             throw new RuntimeException(e.getMessage());
         }
@@ -1520,7 +1466,6 @@ public class RTFHandler extends FOEventHandler {
         float tableWidth = percentManager.getBaseLength(LengthBase.CONTAINING_BLOCK_WIDTH, tab);
         float tableUnit = columnSetup.computeTableUnit(percentManager, Math.round(tableWidth));
         percentManager.setTableUnit(tab, Math.round(tableUnit));
-
     }
 
     /**
@@ -1722,36 +1667,29 @@ public class RTFHandler extends FOEventHandler {
         if (foNode instanceof PageSequence) {
             PageSequence pageSequence = (PageSequence) foNode;
 
-            Region regionBefore = pagemaster.getRegion(Constants.FO_REGION_BEFORE);
-            if (regionBefore != null) {
-                FONode staticBefore = pageSequence.getFlowMap().get(
-                        regionBefore.getRegionName());
-                if (staticBefore != null) {
-                    recurseFONode(staticBefore);
-                }
-            }
-            Region regionAfter = pagemaster.getRegion(Constants.FO_REGION_AFTER);
-            if (regionAfter != null) {
-                FONode staticAfter = pageSequence.getFlowMap().get(
-                        regionAfter.getRegionName());
-                if (staticAfter != null) {
-                    recurseFONode(staticAfter);
+            Flow mainFlow = pageSequence.getMainFlow();
+            for (Iterator it = rtfRegions.keySet().iterator(); it.hasNext();)
+            {
+                String regionName = (String)it.next();
+                if (!regionName.equals(mainFlow.getFlowName()))
+                {
+                    FONode staticNode = pageSequence.getFlowMap().get(regionName);
+                    recurseFONode(staticNode);
                 }
             }
 
-
-            recurseFONode(pageSequence.getMainFlow());
+            recurseFONode(mainFlow);
         } else if (foNode instanceof Table) {
             Table table = (Table) foNode;
 
             //recurse all table-columns
             if (table.getColumns() != null) {
-              //Calculation for column-widths which are not set
-              prepareTable(table);
+                //Calculation for column-widths which are not set
+                prepareTable(table);
 
-              for (Iterator it = table.getColumns().iterator(); it.hasNext();) {
-                  recurseFONode((FONode) it.next());
-              }
+                for (Iterator it = table.getColumns().iterator(); it.hasNext();) {
+                    recurseFONode((FONode) it.next());
+                }
             } else {
                 //TODO Implement implicit column setup handling!
                 RTFEventProducer eventProducer = RTFEventProducer.Provider.get(

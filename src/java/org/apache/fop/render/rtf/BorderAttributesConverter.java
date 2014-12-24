@@ -29,6 +29,7 @@ package org.apache.fop.render.rtf;
 import org.apache.fop.fo.Constants;
 import org.apache.fop.fo.properties.CommonBorderPaddingBackground;
 import org.apache.fop.render.rtf.rtflib.rtfdoc.IBorderAttributes;
+import org.apache.fop.render.rtf.rtflib.rtfdoc.IRtfMappings;
 import org.apache.fop.render.rtf.rtflib.rtfdoc.RtfAttributes;
 import org.apache.fop.render.rtf.rtflib.rtfdoc.RtfText;
 
@@ -52,11 +53,11 @@ public final class BorderAttributesConverter {
      * @param controlWord The border control word.
      */
     public static void makeBorder(CommonBorderPaddingBackground border, int side,
-            RtfAttributes attributes, String controlWord) {
+            RtfAttributes attributes, String controlWord, IRtfMappings rtfMappings) {
         int styleEnum = border.getBorderStyle(side);
         if (styleEnum != Constants.EN_NONE) {
             FOPRtfAttributes attrs = new FOPRtfAttributes();
-            attrs.set(IBorderAttributes.BORDER_COLOR, border.getBorderColor(side));
+            attrs.set(IBorderAttributes.BORDER_COLOR, border.getBorderColor(side), rtfMappings);
             attrs.set(convertAttributetoRtf(styleEnum));
             //division by 50 to convert millipoints to twips
             attrs.set(IBorderAttributes.BORDER_WIDTH, border.getBorderWidth(side, false) / 50);
