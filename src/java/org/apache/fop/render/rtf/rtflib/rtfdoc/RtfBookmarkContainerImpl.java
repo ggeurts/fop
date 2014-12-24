@@ -27,7 +27,7 @@ package org.apache.fop.render.rtf.rtflib.rtfdoc;
  */
 
 import java.io.IOException;
-import java.io.Writer;
+import org.apache.fop.render.rtf.rtflib.exceptions.RtfStructureException;
 
 /**
  * <p>RTF Bookmark container implementation.
@@ -37,27 +37,13 @@ import java.io.Writer;
  * <p>This work was authored by Andreas Putz (a.putz@skynamics.com).</p>
  */
 public class RtfBookmarkContainerImpl extends RtfContainer implements IRtfBookmarkContainer {
-    //////////////////////////////////////////////////
-    // @@ Members
-    //////////////////////////////////////////////////
-
-    /** Rtf bookmark */
-    private RtfBookmark mBookmark;
-
-
-    //////////////////////////////////////////////////
-    // @@ Construction
-    //////////////////////////////////////////////////
-
     /**
      * Constructor.
      * Create an RTF container as a child of given container.
      *
      * @param parent The parent container
-     *
-     * @exception IOException On error
      */
-    RtfBookmarkContainerImpl(RtfContainer parent) throws IOException {
+    RtfBookmarkContainerImpl(RtfContainer parent) {
         super(parent, null);
     }
 
@@ -67,10 +53,8 @@ public class RtfBookmarkContainerImpl extends RtfContainer implements IRtfBookma
      *
      * @param parent The parent container
      * @param attr Rtf attributes
-     *
-     * @exception IOException On error
      */
-    RtfBookmarkContainerImpl(RtfContainer parent, RtfAttributes attr) throws IOException
+    RtfBookmarkContainerImpl(RtfContainer parent, RtfAttributes attr)
     {
         super(parent, attr);
     }
@@ -84,18 +68,22 @@ public class RtfBookmarkContainerImpl extends RtfContainer implements IRtfBookma
      * Create a new RTF bookmark.
      *
      * @param bookmark Name of the bookmark
-     *
      * @return RTF bookmark
-     *
-     * @throws IOException On error
      */
-    public RtfBookmark newBookmark(String bookmark) throws IOException {
-        if (mBookmark != null) {
-            mBookmark.close();
+    public RtfBookmark newBookmark(String bookmark) {
+        return new RtfBookmark(this, bookmark);
+    }
+    
+    /** 
+     * {@inheritDoc}
+     * Closes any previous child.
+     */
+    protected void addChild(RtfElement e) {
+        RtfElement previousChild = getLastChild();
+        if (previousChild != null) {
+            previousChild.close();
         }
-
-        mBookmark = new RtfBookmark(this, bookmark);
-
-        return mBookmark;
+        
+        super.addChild(e);
     }
 }

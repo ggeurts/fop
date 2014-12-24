@@ -95,10 +95,8 @@ public class RtfListTable extends RtfContainer {
      * RtfListTable Constructor: sets the number of the list, and allocates
      * for the RtfAttributes
      * @param parent RtfContainer holding this RtfListTable
-     * @throws IOException for I/O problems
      */
-    public RtfListTable(RtfContainer parent)
-    throws IOException {
+    public RtfListTable(RtfContainer parent) {
         super(parent);
     }
 

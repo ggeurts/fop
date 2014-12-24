@@ -194,8 +194,7 @@ public class RtfText extends RtfElement {
     /** Create an RtfText in given IRtfTextContainer.
      *  @param str optional initial text content
      */
-    RtfText(IRtfTextContainer parent, String str, RtfAttributes attr)
-           throws IOException {
+    RtfText(IRtfTextContainer parent, String str, RtfAttributes attr) {
         super((RtfContainer)parent);
         this.text = str;
         this.attr = attr;

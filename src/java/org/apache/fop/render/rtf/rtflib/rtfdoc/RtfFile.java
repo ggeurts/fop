@@ -53,9 +53,8 @@ implements IRtfMappings {
     /**
      * Create an RTF file that outputs to the given Writer
      * @param w the Writer to write to
-     * @throws IOException for I/O problems
      */
-    public RtfFile(Writer w) throws IOException {
+    public RtfFile(Writer w) {
         super(null);
         header = new RtfHeader(this);
         writer = w != null ? new RtfWriter(w) : null;
@@ -105,11 +104,10 @@ implements IRtfMappings {
      * must be able to have multiple page definition, and corresponding
      * Document areas
      * @return the RtfPageArea
-     * @throws IOException for I/O problems
      * @throws RtfStructureException for illegal RTF structure
      */
     public RtfPageArea startPageArea()
-    throws IOException, RtfStructureException {
+    throws RtfStructureException {
         if (pageArea != null) {
             throw new RtfStructureException("startPageArea called more than once");
         }
@@ -120,11 +118,10 @@ implements IRtfMappings {
     /**
      * Call startPageArea if needed and return the page area object.
      * @return the RtfPageArea
-     * @throws IOException for I/O problems
      * @throws RtfStructureException for illegal RTF structure
      */
     public RtfPageArea getPageArea()
-    throws IOException, RtfStructureException {
+    throws RtfStructureException {
         if (pageArea == null) {
             return startPageArea();
         }
@@ -135,11 +132,10 @@ implements IRtfMappings {
      * Closes the RtfHeader if not done yet, and starts the document area.
      * Must be called once only.
      * @return the RtfDocumentArea
-     * @throws IOException for I/O problems
      * @throws RtfStructureException for illegal RTF structure
      */
     public RtfDocumentArea startDocumentArea()
-        throws IOException, RtfStructureException {
+        throws RtfStructureException {
         if (docArea != null) {
             throw new RtfStructureException("startDocumentArea called more than once");
         }
@@ -150,11 +146,10 @@ implements IRtfMappings {
     /**
      * Call startDocumentArea if needed and return the document area object.
      * @return the RtfDocumentArea
-     * @throws IOException for I/O problems
      * @throws RtfStructureException for illegal RTF structure
      */
     public RtfDocumentArea getDocumentArea()
-    throws IOException, RtfStructureException {
+    throws RtfStructureException {
         if (docArea == null) {
             return startDocumentArea();
         }

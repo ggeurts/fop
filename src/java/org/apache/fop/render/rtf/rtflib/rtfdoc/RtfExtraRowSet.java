@@ -128,8 +128,7 @@ public class RtfExtraRowSet extends RtfContainer {
     /** an RtfExtraRowSet has no parent, it is only used temporary during
      *  generation of RTF for an RtfTableRow
      */
-    RtfExtraRowSet()
-    throws IOException {
+    RtfExtraRowSet() {
         super(null);
     }
 

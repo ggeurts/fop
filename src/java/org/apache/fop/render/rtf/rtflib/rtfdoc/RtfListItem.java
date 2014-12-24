@@ -27,6 +27,7 @@ package org.apache.fop.render.rtf.rtflib.rtfdoc;
  */
 
 import java.io.IOException;
+import org.apache.fop.render.rtf.rtflib.exceptions.RtfStructureException;
 
 /**
  * <p>Model of an RTF list item, which can contain RTF paragraphs.</p>
@@ -40,7 +41,6 @@ public class RtfListItem extends RtfContainer
                    IRtfParagraphContainer {
 
     private RtfList parentList;
-    private RtfParagraph paragraph;
     private RtfListStyle listStyle;
     private int number;
 
@@ -49,8 +49,7 @@ public class RtfListItem extends RtfContainer
      */
     private class RtfListItemParagraph extends RtfParagraph {
 
-        RtfListItemParagraph(RtfListItem rli, RtfAttributes attrs)
-        throws IOException {
+        RtfListItemParagraph(RtfListItem rli, RtfAttributes attrs) {
             super(rli, attrs);
         }
 
@@ -70,9 +69,8 @@ public class RtfListItem extends RtfContainer
         /**
          * Constructs the RtfListItemLabel
          * @param item The RtfListItem the label belongs to
-         * @throws IOException Thrown when an IO-problem occurs
          */
-        public RtfListItemLabel(RtfListItem item) throws IOException {
+        public RtfListItemLabel(RtfListItem item) {
             super(null, null);
 
             rtfListItem = item;
@@ -82,18 +80,16 @@ public class RtfListItem extends RtfContainer
          * Returns the current RtfTextrun object.
          * Opens a new one if necessary.
          * @return The RtfTextrun object
-         * @throws IOException Thrown when an IO-problem occurs
          */
-        public RtfTextrun getTextrun() throws IOException {
+        public RtfTextrun getTextrun() {
             return this;
         }
 
         /**
          * Sets the content of the list item label.
          * @param s Content of the list item label.
-         * @throws IOException Thrown when an IO-problem occurs
          */
-        public void addString(String s) throws IOException {
+        public void addString(String s) {
 
             final String label = s.trim();
             if (label.length() > 0 && Character.isDigit(label.charAt(0))) {
@@ -105,7 +101,7 @@ public class RtfListItem extends RtfContainer
     }
 
     /** Create an RTF list item as a child of given container with default attributes */
-    RtfListItem(RtfList parent) throws IOException {
+    RtfListItem(RtfList parent) {
         super((RtfContainer)parent);
         parentList = parent;
     }
@@ -114,27 +110,21 @@ public class RtfListItem extends RtfContainer
      * Close current paragraph if any and start a new one
      * @param attrs attributes of new paragraph
      * @return new RtfParagraph
-     * @throws IOException Thrown when an IO-problem occurs
      */
-    public RtfParagraph newParagraph(RtfAttributes attrs) throws IOException {
-        if (paragraph != null) {
-            paragraph.close();
-        }
-        paragraph = new RtfListItemParagraph(this, attrs);
-        return paragraph;
+    public RtfParagraph newParagraph(RtfAttributes attrs) {
+        return new RtfListItemParagraph(this, attrs);
     }
 
     /**
      * Close current paragraph if any and start a new one with default attributes
      * @return new RtfParagraph
-     * @throws IOException Thrown when an IO-problem occurs
      */
-    public RtfParagraph newParagraph() throws IOException {
+    public RtfParagraph newParagraph() {
         return newParagraph(null);
     }
 
     /** Create an RTF list item as a child of given container with given attributes */
-    RtfListItem(RtfList parent, RtfAttributes attr) throws IOException {
+    RtfListItem(RtfList parent, RtfAttributes attr) {
         super((RtfContainer)parent, attr);
         parentList = parent;
     }
@@ -143,9 +133,8 @@ public class RtfListItem extends RtfContainer
     /**
      * Get the current textrun.
      * @return current RtfTextrun object
-     * @throws IOException Thrown when an IO-problem occurs
      */
-    public RtfTextrun getTextrun() throws IOException {
+    public RtfTextrun getTextrun() {
         RtfTextrun textrun = RtfTextrun.getTextrun(this, null);
         textrun.setRtfListItem(this);
         return textrun;
@@ -155,11 +144,9 @@ public class RtfListItem extends RtfContainer
      * Start a new list after closing current paragraph, list and table
      * @param attrs attributes of new RftList object
      * @return new RtfList
-     * @throws IOException for I/O problems
      */
-    public RtfList newList(RtfAttributes attrs) throws IOException {
-        RtfList list = new RtfList(this, attrs);
-        return list;
+    public RtfList newList(RtfAttributes attrs) {
+        return new RtfList(this, attrs);
     }
 
     /** {@inheritDoc} 
@@ -242,5 +229,18 @@ public class RtfListItem extends RtfContainer
      */
     public int getNumber() {
         return number;
+    }
+    
+    /** 
+     * {@inheritDoc}
+     * Closes any previous child.
+     */
+    protected void addChild(RtfElement e) {
+        RtfElement previousChild = getLastChild();
+        if (previousChild != null) {
+            previousChild.close();
+        }
+        
+        super.addChild(e);
     }
 }

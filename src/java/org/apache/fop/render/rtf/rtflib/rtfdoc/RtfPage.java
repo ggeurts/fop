@@ -57,6 +57,9 @@ extends RtfContainer {
     /** constant for right margin */
     public static final String MARGIN_RIGHT = "margr";
 
+    /** constant for first page with special format */
+    public static final String TITLE_PAGE = "titlepg";
+    
     /** constant for header position */
     public static final String HEADERY = "headery";
     /** constant for footer position */
@@ -72,14 +75,14 @@ extends RtfContainer {
 
     /**    RtfPage creates new page attributes with the parent container, the writer
            and the attributes*/
-    RtfPage(RtfPageArea parent, RtfAttributes attrs) throws IOException {
+    RtfPage(RtfPageArea parent, RtfAttributes attrs) {
         super((RtfContainer)parent);
         attrib = attrs;
     }
 
     /**
      * RtfPage writes the attributes contained in the string PAGE_ATTR, if not null
-     * @param w the value of w
+     * @param w the {@link RtfWriter} to write to.
      * @throws IOException for I/O problems
      */
     protected void writeRtfContent(RtfWriter w) throws IOException {
@@ -102,8 +105,7 @@ extends RtfContainer {
      * Therefore must make this true to print.
      * @return true
      */
-    protected boolean okToWriteRtf() {
-        return true;
+    public boolean isEmpty() {
+        return super.isEmpty() && attrib.isEmpty();
     }
-
 }

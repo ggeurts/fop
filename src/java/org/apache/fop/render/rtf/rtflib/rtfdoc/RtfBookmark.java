@@ -59,7 +59,7 @@ public class RtfBookmark extends RtfElement {
      * @param parent a <code>RtfBookmarkContainer</code> value
      * @param bookmark Name of the bookmark
      */
-    RtfBookmark(RtfContainer parent, String bookmark) throws IOException {
+    RtfBookmark(RtfContainer parent, String bookmark) {
         super(parent);
 
         int now = bookmark.length();

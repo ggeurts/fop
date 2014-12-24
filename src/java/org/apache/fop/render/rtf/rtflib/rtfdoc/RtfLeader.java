@@ -129,7 +129,7 @@ public class RtfLeader extends RtfContainer {
     /** Tab width */
     public static final String LEADER_TAB_WIDTH = "tx";
 
-    RtfLeader(RtfContainer parent, RtfAttributes attrs) throws IOException {
+    RtfLeader(RtfContainer parent, RtfAttributes attrs) {
         super(parent);
         this.attrs = attrs;
     }

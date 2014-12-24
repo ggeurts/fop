@@ -44,12 +44,12 @@ public class RtfContainer extends RtfElement {
     private final LinkedList children; 
 
     /** Create an RTF container as a child of given container */
-    RtfContainer(RtfContainer parent) throws IOException {
+    RtfContainer(RtfContainer parent) {
         this(parent, null);
     }
 
     /** Create an RTF container as a child of given container with given attributes */
-    RtfContainer(RtfContainer parent, RtfAttributes attr) throws IOException {
+    RtfContainer(RtfContainer parent, RtfAttributes attr) {
         super(parent, attr);
         children = new LinkedList();
     }
@@ -57,10 +57,8 @@ public class RtfContainer extends RtfElement {
     /**
      * add a child element to this
      * @param e child element to add
-     * @throws RtfStructureException for trying to add an invalid child (??)
      */
-    protected void addChild(RtfElement e)
-    throws RtfStructureException {
+    protected void addChild(RtfElement e) {
         if (isClosed()) {
             // No childs should be added to a container that has been closed
             final StringBuffer sb = new StringBuffer();
@@ -69,19 +67,7 @@ public class RtfContainer extends RtfElement {
             sb.append(" child=");
             sb.append(e.getClass().getName());
             sb.append(")");
-            final String msg = sb.toString();
-
-            // warn of this problem
-            final RtfFile rf = getRtfFile();
-//            if(rf.getLog() != null) {
-//               rf.getLog().logWarning(msg);
-//            }
-
-            // TODO this should be activated to help detect XSL-FO constructs
-            // that we do not handle properly.
-            /*
-            throw new RtfStructureException(msg);
-             */
+            throw new RuntimeException(sb.toString());
         }
 
         children.add(e);
@@ -99,6 +85,14 @@ public class RtfContainer extends RtfElement {
      */
     public int getChildCount() {
         return children.size();
+    }
+    
+    /**
+     * @return The last child added to this container, or null otherwise.
+     */
+    protected RtfElement getLastChild()
+    {
+        return children.isEmpty() ? null : (RtfElement)children.getLast();
     }
 
     private int findChildren(RtfElement aChild, int iStart) {
@@ -173,6 +167,16 @@ public class RtfContainer extends RtfElement {
      */
     public String toString() {
         return super.toString() + " (" + getChildCount() + " children)";
+    }
+
+    /** {@inheritDoc} */
+    public void close() {
+        if (!isClosed()) {
+            super.close();
+            for (Iterator it = children.iterator(); it.hasNext();) {
+                ((RtfElement)it.next()).close();
+            }
+        }
     }
 
     /**

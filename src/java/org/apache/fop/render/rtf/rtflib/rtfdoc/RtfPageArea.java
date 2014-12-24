@@ -27,6 +27,7 @@ package org.apache.fop.render.rtf.rtflib.rtfdoc;
  */
 
 import java.io.IOException;
+import org.apache.fop.render.rtf.rtflib.exceptions.RtfStructureException;
 
 /**
  * <p>Page area container.</p>
@@ -35,11 +36,9 @@ import java.io.IOException;
  */
 public class RtfPageArea
 extends RtfContainer {
-    private RtfPage currentPage;
-
     /** Create an RTF element as a child of given container
      * @param f the value of f */
-    RtfPageArea(RtfFile f) throws IOException {
+    RtfPageArea(RtfFile f) {
         super(f);
     }
 
@@ -49,19 +48,20 @@ extends RtfContainer {
      * @return new RtfPage
      * @throws IOException for I/O problems
      */
-    public RtfPage newPage(RtfAttributes attr) throws IOException {
-        if (currentPage != null) {
-            currentPage.close();
-        }
-        currentPage = new RtfPage(this, attr);
-
-        return currentPage;
+    public RtfPage newPage(RtfAttributes attr) {
+        return new RtfPage(this, attr);
     }
-
-    /**
-     * @return true
+    
+    /** 
+     * {@inheritDoc}
+     * Closes any previous child.
      */
-    protected boolean okToWriteRtf() {
-        return true;
+    protected void addChild(RtfElement e) {
+        RtfElement previousChild = getLastChild();
+        if (previousChild != null) {
+            previousChild.close();
+        }
+        
+        super.addChild(e);
     }
 }

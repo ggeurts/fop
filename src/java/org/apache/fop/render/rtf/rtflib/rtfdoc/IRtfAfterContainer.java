@@ -26,8 +26,6 @@ package org.apache.fop.render.rtf.rtflib.rtfdoc;
  * the FOP project.
  */
 
-import java.io.IOException;
-
 /** interface for RTF objects that can contain footers */
 public interface IRtfAfterContainer {
     /**
@@ -36,5 +34,5 @@ public interface IRtfAfterContainer {
      * @return RtfAfter for footer
      * @throws IOException for I/O problems
      */
-    RtfAfter newAfter(RtfAttributes attrs) throws IOException;
+    RtfAfter newAfter(RtfAttributes attrs);
 }

@@ -26,8 +26,6 @@ package org.apache.fop.render.rtf.rtflib.rtfdoc;
  * the FOP project.
  */
 
-import java.io.IOException;
-
 /**
  * <p>Interface for RtfElements that can contain RtfText elements.</p>
  *
@@ -38,7 +36,6 @@ public interface IRtfPageContainer {
     /** close current text run if any and start a new one with specified attributes
      * @param attrs attributes for the new Page
      * @return new Page object
-     * @throws IOException for I/O problems.
      */
-    RtfPage newPage(RtfAttributes attrs) throws IOException;
+    RtfPage newPage(RtfAttributes attrs);
 }

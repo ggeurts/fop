@@ -26,13 +26,13 @@ package org.apache.fop.render.rtf.rtflib.rtfdoc;
 public class RtfSpaceSplitter {
 
     /** Common attributes for all text. */
-    private RtfAttributes commonAttributes;
+    private final RtfAttributes commonAttributes;
 
     /** Space-before attributes of a block. */
-    private int spaceBefore;
+    private final int spaceBefore;
 
     /** Space-after attributes of a block. */
-    private int spaceAfter;
+    private final int spaceAfter;
 
     /** Indicate that we can update candidate for space-before. */
     private boolean updatingSpaceBefore;

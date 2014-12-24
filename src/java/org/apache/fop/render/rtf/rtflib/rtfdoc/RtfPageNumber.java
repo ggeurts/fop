@@ -48,12 +48,12 @@ public class RtfPageNumber extends RtfContainer {
     public static final String RTF_FIELD_RESULT = "fldrslt";
 
     /** Create an RTF paragraph as a child of given container with default attributes */
-    RtfPageNumber(IRtfPageNumberContainer parent) throws IOException {
+    RtfPageNumber(IRtfPageNumberContainer parent) {
         super((RtfContainer)parent);
     }
 
     /** Create an RTF page number as a child of given container with given attributes */
-     RtfPageNumber(RtfContainer parent, RtfAttributes attrs) throws IOException {
+     RtfPageNumber(RtfContainer parent, RtfAttributes attrs) {
          // Adds the attributes of the parent paragraph
          super(parent, attrs);
      }
@@ -61,7 +61,7 @@ public class RtfPageNumber extends RtfContainer {
     /** Create an RTF page number as a child of given paragraph,
      *  copying the paragraph attributes
      */
-     RtfPageNumber(RtfParagraph parent) throws IOException {
+     RtfPageNumber(RtfParagraph parent) {
          // Adds the attributes of the parent paragraph
          super((RtfContainer)parent, parent.attrib);
 

@@ -51,16 +51,14 @@ public class RtfPageNumberCitation extends RtfContainer {
     private String id;
 
     /** Create an RTF page number citation as a child of given container with default attributes */
-    RtfPageNumberCitation(RtfContainer parent, String id)
-            throws IOException {
+    RtfPageNumberCitation(RtfContainer parent, String id) {
         super(parent);
         this.id = id;
     }
 
     /** Create an RTF page number citation as a child of given
      *    paragraph, copying its attributes */
-    RtfPageNumberCitation(RtfParagraph parent, String id)
-            throws IOException {
+    RtfPageNumberCitation(RtfParagraph parent, String id) {
         // add the attributes ant text attributes of the parent paragraph
         super((RtfContainer)parent, parent.attrib);
         if (parent.getTextAttributes() != null) {

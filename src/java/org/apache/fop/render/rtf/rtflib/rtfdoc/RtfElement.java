@@ -28,7 +28,6 @@ package org.apache.fop.render.rtf.rtflib.rtfdoc;
 
 import java.io.IOException;
 import java.io.Writer;
-import java.util.Iterator;
 
 /**
  * <p>Base class for all elements of an RTF file.</p>
@@ -47,7 +46,7 @@ public abstract class RtfElement {
 
     /** Create an RTF element as a child of given container
      * @param parent the value of parent */
-    RtfElement(RtfContainer parent) throws IOException {
+    RtfElement(RtfContainer parent) {
         this(parent, null);
     }
 
@@ -55,7 +54,7 @@ public abstract class RtfElement {
      * @param parent the value of parent
      * @param attr the RTF attributes 
      */
-    RtfElement(RtfContainer parent, RtfAttributes attr) throws IOException {
+    RtfElement(RtfContainer parent, RtfAttributes attr) {
 
         id = idCounter++;
         this.parent = parent;
@@ -66,11 +65,9 @@ public abstract class RtfElement {
     }
 
     /**
-     * Does nothing, meant to allow elements to write themselves without waiting
-     * for write(), but not implemented yet
-     * @throws IOException for I/O problems
+     * Prevents structural changes to element
      */
-    public final void close() throws IOException {
+    public void close() {
         closed = true;
     }
 

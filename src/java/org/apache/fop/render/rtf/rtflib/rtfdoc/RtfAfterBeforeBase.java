@@ -27,6 +27,7 @@ package org.apache.fop.render.rtf.rtflib.rtfdoc;
  */
 
 import java.io.IOException;
+import org.apache.fop.render.rtf.rtflib.exceptions.RtfStructureException;
 
 /**
  * <p>Common code for RtfAfter and RtfBefore.</p>
@@ -40,48 +41,21 @@ abstract class RtfAfterBeforeBase
 extends RtfContainer
 implements IRtfParagraphContainer, IRtfExternalGraphicContainer, IRtfTableContainer,
         IRtfTextrunContainer {
-    private RtfParagraph para;
-    private RtfExternalGraphic externalGraphic;
-    private RtfTable table;
 
-    RtfAfterBeforeBase(RtfSection parent, RtfAttributes attrs) throws IOException {
+    RtfAfterBeforeBase(RtfSection parent, RtfAttributes attrs) {
         super((RtfContainer)parent, attrs);
     }
 
-    public RtfParagraph newParagraph() throws IOException {
-        closeAll();
-        para = new RtfParagraph(this);
-        return para;
+    public RtfParagraph newParagraph() {
+        return new RtfParagraph(this);
     }
 
-    public RtfParagraph newParagraph(RtfAttributes attrs) throws IOException {
-        closeAll();
-        para = new RtfParagraph(this, attrs);
-        return para;
+    public RtfParagraph newParagraph(RtfAttributes attrs) {
+        return new RtfParagraph(this, attrs);
     }
 
-    public RtfExternalGraphic newImage() throws IOException {
-        closeAll();
-        externalGraphic = new RtfExternalGraphic(this);
-        return externalGraphic;
-    }
-
-    private void closeCurrentParagraph() throws IOException {
-        if (para != null) {
-            para.close();
-        }
-    }
-
-    private void closeCurrentExternalGraphic() throws IOException {
-        if (externalGraphic != null) {
-            externalGraphic.close();
-        }
-    }
-
-    private void closeCurrentTable() throws IOException {
-        if (table != null) {
-            table.close();
-        }
+    public RtfExternalGraphic newImage() {
+        return new RtfExternalGraphic(this);
     }
 
     /** {@inheritDoc} */
@@ -98,31 +72,39 @@ implements IRtfParagraphContainer, IRtfExternalGraphicContainer, IRtfTableContai
         w.writeGroupMark(false);
     }
 
-    public void closeAll() throws IOException {
-        closeCurrentParagraph();
-        closeCurrentExternalGraphic();
-        closeCurrentTable();
-    }
-
     /** close current table if any and start a new one
      * @param tc added by Boris Poudérous on july 2002 in order to process
      *  number-columns-spanned attribute
      */
-    public RtfTable newTable(RtfAttributes attrs, ITableColumnsInfo tc) throws IOException {
-        closeAll();
-        table = new RtfTable(this, attrs, tc);
-        return table;
+    public RtfTable newTable(RtfAttributes attrs, ITableColumnsInfo tc) {
+        return new RtfTable(this, attrs, tc);
     }
 
     /** close current table if any and start a new one  */
-    public RtfTable newTable(ITableColumnsInfo tc) throws IOException {
-        closeAll();
-        table = new RtfTable(this, tc);
-        return table;
+    public RtfTable newTable(ITableColumnsInfo tc) {
+        return new RtfTable(this, tc);
     }
 
-    public RtfTextrun getTextrun()
-    throws IOException {
+    public RtfTextrun getTextrun() {
         return RtfTextrun.getTextrun(this, null);
+    }
+
+    public boolean isEmpty() {
+        // Write empty headers and footers to prevent inheritance from previous 
+        // section.
+        return attrib.isEmpty();
+    }
+    
+    /** 
+     * {@inheritDoc}
+     * Closes any previous child.
+     */
+    protected void addChild(RtfElement e) {
+        RtfElement previousChild = getLastChild();
+        if (previousChild != null) {
+            previousChild.close();
+        }
+        
+        super.addChild(e);
     }
 }

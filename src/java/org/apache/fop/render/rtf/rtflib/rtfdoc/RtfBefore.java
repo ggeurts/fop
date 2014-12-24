@@ -30,15 +30,21 @@ import java.io.IOException;
 
 /** The opposite of RtfAfter */
 public class RtfBefore extends RtfAfterBeforeBase {
-    /**RtfBefore attributes*/
+    /** Constant for header on all pages */
     public static final String HEADER = "header";
+    /** Constant for header on first page */
+    public static final String HEADER_FIRST = "headerf";
+    /** Constant for header on left pages */
+    public static final String HEADER_LEFT = "headerl";
+    /** Constant for header on right pages */
+    public static final String HEADER_RIGHT = "headerr";
 
     /** String array of attribute names */
     public static final String[] HEADER_ATTR = new String[]{
-        HEADER
+        HEADER, HEADER_FIRST, HEADER_LEFT, HEADER_RIGHT
     };
 
-    RtfBefore(RtfSection parent, RtfAttributes attrs) throws IOException {
+    RtfBefore(RtfSection parent, RtfAttributes attrs) {
         super(parent, attrs);
     }
 

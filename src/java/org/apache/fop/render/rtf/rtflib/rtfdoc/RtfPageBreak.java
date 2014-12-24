@@ -36,7 +36,7 @@ import java.io.IOException;
 
 public class RtfPageBreak extends RtfElement {
     /** Create an RTF paragraph as a child of given container with default attributes */
-    RtfPageBreak(IRtfPageBreakContainer parent) throws IOException {
+    RtfPageBreak(IRtfPageBreakContainer parent) {
         super((RtfContainer)parent);
     }
 

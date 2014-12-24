@@ -39,5 +39,5 @@ public interface IRtfTextrunContainer {
      * @return The RtfTextrun object
      * @throws IOException Thrown when an IO-problem occurs
      */
-    RtfTextrun getTextrun() throws IOException;
+    RtfTextrun getTextrun();
 }

@@ -38,9 +38,8 @@ public class RtfFootnote extends RtfContainer
      * Create an RTF list item as a child of given container with default attributes.
      * @param parent a container
      * @param w a writer
-     * @throws IOException if not caught
      */
-    RtfFootnote(RtfContainer parent) throws IOException {
+    RtfFootnote(RtfContainer parent) {
         super(parent);
         textrunInline = new RtfTextrun(this, null);
         body = new RtfContainer(this);
@@ -50,7 +49,7 @@ public class RtfFootnote extends RtfContainer
      * @return a text run
      * @throws IOException if not caught
      */
-    public RtfTextrun getTextrun() throws IOException {
+    public RtfTextrun getTextrun() {
         if (bBody) {
             RtfTextrun textrun = RtfTextrun.getTextrun(body, null);
             textrun.setSuppressLastPar(true);
@@ -77,9 +76,8 @@ public class RtfFootnote extends RtfContainer
     /**
      * @param attrs some attributes
      * @return a RTF list
-     * @throws IOException if not caught
      */
-    public RtfList newList(RtfAttributes attrs) throws IOException {
+    public RtfList newList(RtfAttributes attrs) {
         if (list != null) {
             list.close();
         }

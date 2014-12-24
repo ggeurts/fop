@@ -30,9 +30,8 @@ public class RtfGenerator extends RtfElement {
     /**
      * Default constructor for the generator element.
      * @param h a header
-     * @throws IOException if not caught
      */
-    public RtfGenerator(RtfHeader h) throws IOException {
+    public RtfGenerator(RtfHeader h) {
         super(h);
     }
 

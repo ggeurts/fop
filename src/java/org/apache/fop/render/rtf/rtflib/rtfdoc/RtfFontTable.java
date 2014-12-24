@@ -44,8 +44,8 @@ public final class RtfFontTable extends RtfElement {
     private final Vector fontTable = new Vector();
 
     
-    /** Create an RTF header */
-    RtfFontTable(RtfHeader h) throws IOException {
+    /** Create a RTF header */
+    RtfFontTable(RtfHeader h) {
         super(h);
     }
 

@@ -26,8 +26,6 @@ package org.apache.fop.render.rtf.rtflib.rtfdoc;
  * the FOP project.
  */
 
-import java.io.IOException;
-
 /**
  * Interface for objects containing Commands
  */
@@ -38,5 +36,5 @@ public interface IRtfJforCmdContainer {
      * @return new Command object
      * @throws IOException for I/O problems
      */
-    RtfJforCmd newJforCmd(RtfAttributes attr) throws IOException;
+    RtfJforCmd newJforCmd(RtfAttributes attr);
 }

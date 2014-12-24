@@ -26,8 +26,6 @@ package org.apache.fop.render.rtf.rtflib.rtfdoc;
  * the FOP project.
  */
 
-import java.io.IOException;
-
 /**
  * <p>RTF Bookmark container interface.</p>
  *
@@ -39,8 +37,7 @@ public interface IRtfBookmarkContainer {
      * Create a new RTF bookmark.
      * @param bookmark Name of the bookmark
      * @return RTF bookmark
-     * @throws IOException for I/O problems
      */
-    RtfBookmark newBookmark(String bookmark) throws IOException;
+    RtfBookmark newBookmark(String bookmark);
 }
 

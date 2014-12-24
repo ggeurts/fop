@@ -28,6 +28,7 @@ package org.apache.fop.render.rtf.rtflib.rtfdoc;
 
 import java.io.IOException;
 import java.util.Iterator;
+import org.apache.fop.render.rtf.rtflib.exceptions.RtfStructureException;
 
 /**
  * <p>A cell in an RTF table, container for paragraphs, lists, etc.</p>
@@ -39,14 +40,10 @@ public class RtfTableCell
         extends RtfContainer
         implements IRtfParagraphContainer, IRtfListContainer, IRtfTableContainer,
             IRtfExternalGraphicContainer, IRtfTextrunContainer {
-    private RtfParagraph paragraph;
-    private RtfList list;
-    private RtfTable table;
-    private RtfExternalGraphic externalGraphic;
-    private final RtfTableRow parentRow;
     private boolean setCenter;
     private boolean setRight;
-    private int id;
+    private boolean containsNestedTable;
+    private final int id;
     private RtfParagraphBreak lastBreak;
     private int lastBreakDepth = Integer.MIN_VALUE;
 
@@ -57,8 +54,7 @@ public class RtfTableCell
     public static final int DEFAULT_CELL_WIDTH = 2000;
 
     /** cell width in twips */
-    private int cellWidth;
-    private int widthOffset;
+    private final int cellWidth;
 
     /** cell merging has three states */
     private int vMerge = NO_MERGE;
@@ -74,22 +70,18 @@ public class RtfTableCell
     public static final int MERGE_WITH_PREVIOUS = 2;
 
     /** Create an RTF element as a child of given container */
-    RtfTableCell(RtfTableRow parent, int cellWidth, int idNum) throws IOException {
+    RtfTableCell(RtfTableRow parent, int cellWidth, int idNum) {
         super(parent);
         id = idNum;
-        parentRow = parent;
         this.cellWidth = cellWidth;
         setCenter = false;
         setRight = false;
-
     }
 
     /** Create an RTF element as a child of given container */
-    RtfTableCell(RtfTableRow parent, int cellWidth, RtfAttributes attrs,
-            int idNum) throws IOException {
+    RtfTableCell(RtfTableRow parent, int cellWidth, RtfAttributes attrs, int idNum)  {
         super(parent, attrs);
         id = idNum;
-        parentRow = parent;
         this.cellWidth = cellWidth;
     }
 
@@ -97,19 +89,15 @@ public class RtfTableCell
      * Start a new paragraph after closing current current paragraph, list and table
      * @param attrs attributes of new RtfParagraph
      * @return new RtfParagraph object
-     * @throws IOException for I/O problems
      */
-    public RtfParagraph newParagraph(RtfAttributes attrs) throws IOException {
-        closeAll();
-
+    public RtfParagraph newParagraph(RtfAttributes attrs) {
         // in tables, RtfParagraph must have the intbl attribute
         if (attrs == null) {
             attrs = new RtfAttributes();
         }
 
         attrs.set("intbl");
-
-        paragraph = new RtfParagraph(this, attrs);
+        RtfParagraph paragraph = new RtfParagraph(this, attrs);
 
         if (paragraph.attrib.isSet("qc")) {
             setCenter = true;
@@ -122,29 +110,24 @@ public class RtfTableCell
         }
         attrs.set("intbl");
 
-
         //lines modified by Chris Scott, Westinghouse
         return paragraph;
     }
 
     /**
      * Start a new external graphic after closing current paragraph, list and table
-     * @throws IOException for I/O problems
      * @return new RtfExternalGraphic object
      */
-    public RtfExternalGraphic newImage() throws IOException {
-        closeAll();
-        externalGraphic = new RtfExternalGraphic(this);
-        return externalGraphic;
+    public RtfExternalGraphic newImage() {
+        return new RtfExternalGraphic(this);
     }
 
     /**
      * Start a new paragraph with default attributes after closing current
      * paragraph, list and table
      * @return new RtfParagraph object
-     * @throws IOException for I/O problems
      */
-    public RtfParagraph newParagraph() throws IOException {
+    public RtfParagraph newParagraph() {
         return newParagraph(null);
     }
 
@@ -152,24 +135,18 @@ public class RtfTableCell
      * Start a new list after closing current paragraph, list and table
      * @param attrib attributes for new RtfList
      * @return new RtfList object
-     * @throws IOException for I/O problems
      */
-    public RtfList newList(RtfAttributes attrib) throws IOException {
-        closeAll();
-        list = new RtfList(this, attrib);
-        return list;
+    public RtfList newList(RtfAttributes attrib) {
+        return new RtfList(this, attrib);
     }
 
     /**
      * Start a new nested table after closing current paragraph, list and table
      * @param tc table column info for new RtfTable
      * @return new RtfTable object
-     * @throws IOException for I/O problems
      */
-    public RtfTable newTable(ITableColumnsInfo tc) throws IOException {
-        closeAll();
-        table = new RtfTable(this, tc);
-        return table;
+    public RtfTable newTable(ITableColumnsInfo tc) {
+        return new RtfTable(this, tc);
     }
 
     /**
@@ -177,13 +154,10 @@ public class RtfTableCell
      * @param attrs attributes of new RtfTable
      * @param tc table column info for new RtfTable
      * @return new RtfTable object
-     * @throws IOException for I/O problems
      */
     // Modified by Boris Poudérous on 07/22/2002
-    public RtfTable newTable(RtfAttributes attrs, ITableColumnsInfo tc) throws IOException {
-        closeAll();
-        table = new RtfTable(this, attrs, tc); // Added tc Boris Poudérous 07/22/2002
-        return table;
+    public RtfTable newTable(RtfAttributes attrs, ITableColumnsInfo tc) {
+        return new RtfTable(this, attrs, tc); // Added tc Boris Poudérous 07/22/2002
     }
 
     /** used by RtfTableRow to write the <celldef> cell definition control words
@@ -207,7 +181,6 @@ public class RtfTableCell
         }
 
         w.newLine();
-        this.widthOffset = offset;
 
         // vertical cell merge codes
         if (vMerge == MERGE_START) {
@@ -359,40 +332,6 @@ public class RtfTableCell
         }
     }
 
-
-    //modified by Chris Scott, Westinghouse
-    private void closeCurrentParagraph() throws IOException {
-        if (paragraph != null) {
-            paragraph.close();
-        }
-    }
-
-    private void closeCurrentList() throws IOException {
-        if (list != null) {
-            list.close();
-        }
-    }
-
-    private void closeCurrentTable() throws IOException {
-        if (table != null) {
-            table.close();
-        }
-    }
-
-    private void closeCurrentExternalGraphic() throws IOException {
-        if (externalGraphic != null) {
-            externalGraphic.close();
-        }
-    }
-
-    private void closeAll()
-    throws IOException {
-        closeCurrentTable();
-        closeCurrentParagraph();
-        closeCurrentList();
-        closeCurrentExternalGraphic();
-    }
-
     /**
      * @param mergeStatus vertical cell merging status to set
      */
@@ -506,7 +445,7 @@ public class RtfTableCell
      * @return The RtfTextrun object
      * @throws IOException Thrown when an IO-problem occurs
      */
-    public RtfTextrun getTextrun() throws IOException {
+    public RtfTextrun getTextrun() {
         RtfAttributes attrs = new RtfAttributes();
 
         if (!getRow().getTable().isNestedTable()) {
@@ -562,14 +501,31 @@ public class RtfTableCell
      * now the control word is really switched
      */
     public void finish() {
-      //If it is nested and contains another table do not set it
-      if (getRow().getTable().isNestedTable() && table != null) {
-          lastBreak = null;
-      } else if (lastBreak != null) {
-              lastBreak.switchControlWord(
-                                          getRow().getTable().isNestedTable()
-                                          ? TABLE_CELL_NESTED_PARAGRAPH
-                                          : TABLE_CELL_PARAGRAPH);
+        //If it is nested and contains another table do not set it
+        boolean inNestedTable = getRow().getTable().isNestedTable();
+        if (inNestedTable && containsNestedTable) {
+            lastBreak = null;
+        } else if (lastBreak != null) {
+            lastBreak.switchControlWord(inNestedTable
+                    ? TABLE_CELL_NESTED_PARAGRAPH
+                    : TABLE_CELL_PARAGRAPH);
       }
+    }
+
+    /** 
+     * {@inheritDoc}
+     * Closes any previous child.
+     */
+    protected void addChild(RtfElement e) {
+        RtfElement previousChild = getLastChild();
+        if (previousChild != null) {
+            previousChild.close();
+        }
+
+        if (e instanceof RtfTable) {
+            containsNestedTable = true;
+        }
+        
+        super.addChild(e);
     }
 }

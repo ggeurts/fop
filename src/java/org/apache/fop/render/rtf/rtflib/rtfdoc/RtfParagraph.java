@@ -43,11 +43,6 @@ implements IRtfTextContainer, IRtfPageBreakContainer, IRtfHyperLinkContainer,
         IRtfExternalGraphicContainer, IRtfPageNumberContainer,
         IRtfPageNumberCitationContainer {
     private RtfText text;
-    private RtfHyperLink hyperlink;
-    private RtfExternalGraphic externalGraphic;
-    private RtfPageNumber pageNumber;
-    private RtfPageNumberCitation pageNumberCitation;
-    // Above line added by Boris POUDEROUS on 2002/07/09
     private boolean keepn;
     private boolean resetProperties;
 
@@ -63,12 +58,12 @@ implements IRtfTextContainer, IRtfPageBreakContainer, IRtfHyperLinkContainer,
     private static final String[] PARA_ATTRIBUTES = {"intbl"};
 
     /** Create an RTF paragraph as a child of given container with default attributes */
-    RtfParagraph(IRtfParagraphContainer parent) throws IOException {
+    RtfParagraph(IRtfParagraphContainer parent) {
         super((RtfContainer)parent);
     }
 
     /** Create an RTF paragraph as a child of given container with given attributes */
-    RtfParagraph(IRtfParagraphContainer parent, RtfAttributes attr) throws IOException {
+    RtfParagraph(IRtfParagraphContainer parent, RtfAttributes attr) {
         super((RtfContainer)parent, attr);
     }
 
@@ -170,7 +165,7 @@ implements IRtfTextContainer, IRtfPageBreakContainer, IRtfHyperLinkContainer,
      * @return the new RtfText object
      * @throws IOException for I/O problems
      */
-    public RtfText newText(String str) throws IOException {
+    public RtfText newText(String str) {
         return newText(str, null);
     }
 
@@ -181,17 +176,14 @@ implements IRtfTextContainer, IRtfPageBreakContainer, IRtfHyperLinkContainer,
      * @return the new RtfText object
      * @throws IOException for I/O problems
      */
-    public RtfText newText(String str, RtfAttributes attr) throws IOException {
-        closeAll();
-        text = new RtfText(this, str, attr);
-        return text;
+    public RtfText newText(String str, RtfAttributes attr) {
+        return text = new RtfText(this, str, attr);
     }
 
     /**
      * add a page break
-     * @throws IOException for I/O problems
      */
-    public void newPageBreak() throws IOException {
+    public void newPageBreak() {
         writeForBreak = true;
         new RtfPageBreak(this);
     }
@@ -200,29 +192,25 @@ implements IRtfTextContainer, IRtfPageBreakContainer, IRtfHyperLinkContainer,
      * add a line break
      * @throws IOException for I/O problems
      */
-    public void newLineBreak() throws IOException {
+    public void newLineBreak() {
         new RtfLineBreak(this);
     }
 
     /**
      * Add a page number
      * @return new RtfPageNumber object
-     * @throws IOException for I/O problems
      */
-    public RtfPageNumber newPageNumber()throws IOException {
-        pageNumber = new RtfPageNumber(this);
-        return pageNumber;
+    public RtfPageNumber newPageNumber() {
+        return new RtfPageNumber(this);
     }
 
     /**
      * Added by Boris POUDEROUS on 2002/07/09
      * @param id string containing the citation text
      * @return the new RtfPageNumberCitation object
-     * @throws IOException for I/O problems
      */
-    public RtfPageNumberCitation newPageNumberCitation(String id) throws IOException {
-       pageNumberCitation = new RtfPageNumberCitation(this, id);
-       return pageNumberCitation;
+    public RtfPageNumberCitation newPageNumberCitation(String id) {
+       return new RtfPageNumberCitation(this, id);
     }
 
     /**
@@ -230,39 +218,17 @@ implements IRtfTextContainer, IRtfPageBreakContainer, IRtfHyperLinkContainer,
      * @param str string containing the hyperlink text
      * @param attr attributes of new hyperlink
      * @return the new RtfHyperLink object
-     * @throws IOException for I/O problems
      */
-    public RtfHyperLink newHyperLink(String str, RtfAttributes attr) throws IOException {
-        hyperlink = new RtfHyperLink(this, str, attr);
-        return hyperlink;
+    public RtfHyperLink newHyperLink(String str, RtfAttributes attr) {
+        return new RtfHyperLink(this, str, attr);
     }
 
     /**
      * Start a new external graphic after closing all other elements
      * @return the new RtfExternalGraphic
-     * @throws IOException for I/O problems
      */
-    public RtfExternalGraphic newImage() throws IOException {
-        closeAll();
-        externalGraphic = new RtfExternalGraphic(this);
-        return externalGraphic;
-    }
-
-    private void closeCurrentText() throws IOException {
-        if (text != null) {
-            text.close();
-        }
-    }
-
-    private void closeCurrentHyperLink() throws IOException {
-        if (hyperlink != null) {
-            hyperlink.close();
-        }
-    }
-
-    private void closeAll() throws IOException {
-        closeCurrentText();
-        closeCurrentHyperLink();
+    public RtfExternalGraphic newImage() {
+        return new RtfExternalGraphic(this);
     }
 
     /** true if we must write our own (non-text) attributes in the RTF */

@@ -26,8 +26,6 @@ package org.apache.fop.render.rtf.rtflib.rtfdoc;
  * the FOP project.
  */
 
-import java.io.IOException;
-
 /**
  * Interface for classes containing page number citations
  */
@@ -36,7 +34,6 @@ public interface IRtfPageNumberCitationContainer {
      *
      * @param id String identifying new page number citation
      * @return RtfPageNumberCitation new page number citation object
-     * @throws IOException for I/O problems
      */
-    RtfPageNumberCitation newPageNumberCitation(String id) throws IOException;
+    RtfPageNumberCitation newPageNumberCitation(String id);
 }

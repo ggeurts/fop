@@ -26,18 +26,15 @@ package org.apache.fop.render.rtf.rtflib.rtfdoc;
  * the FOP project.
  */
 
-import java.io.IOException;
-
 /**
  * Interface for classes containing headers.
  */
 public interface IRtfBeforeContainer {
-
     /**
      *
      * @param attrs Attributes of new header
      * @return RtfBefore for new header object
      * @throws IOException for I/O problems
      */
-    RtfBefore newBefore(RtfAttributes attrs) throws IOException;
+    RtfBefore newBefore(RtfAttributes attrs);
 }

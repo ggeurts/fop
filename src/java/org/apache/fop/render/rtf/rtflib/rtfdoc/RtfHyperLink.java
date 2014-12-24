@@ -27,7 +27,6 @@ package org.apache.fop.render.rtf.rtflib.rtfdoc;
  */
 
 import java.io.IOException;
-import java.io.Writer;
 
 import org.apache.fop.apps.FOPException;
 
@@ -49,9 +48,6 @@ implements IRtfTextContainer,
     /** The url of the image */
     protected String url;
 
-    /** RtfText */
-    protected RtfText mText;
-
     //////////////////////////////////////////////////
     // @@ Construction
     //////////////////////////////////////////////////
@@ -63,10 +59,8 @@ implements IRtfTextContainer,
      * @param parent a <code>RtfContainer</code> value
      * @param str text of the link
      * @param attr a <code>RtfAttributes</code> value
-     * @throws IOException for I/O problems
      */
-    public RtfHyperLink(IRtfTextContainer parent, String str, RtfAttributes attr)
-    throws IOException {
+    public RtfHyperLink(IRtfTextContainer parent, String str, RtfAttributes attr) {
         super((RtfContainer) parent, attr);
         new RtfText(this, str, attr);
     }
@@ -76,11 +70,9 @@ implements IRtfTextContainer,
      *
      * @param parent a <code>RtfContainer</code> value
      * @param attr a <code>RtfAttributes</code> value
-     * @throws IOException for I/O problems
      */
-    public RtfHyperLink(RtfTextrun parent, RtfAttributes attr)
-    throws IOException {
-        super((RtfContainer) parent, attr);
+    public RtfHyperLink(RtfTextrun parent, RtfAttributes attr) {
+        super(parent, attr);
     }
 
 
@@ -128,10 +120,9 @@ implements IRtfTextContainer,
     /**
      * close current text run if any and start a new one with default attributes
      * @param str if not null, added to the RtfText created
-     * @throws IOException for I/O problems
      * @return new RtfText object
      */
-    public RtfText newText(String str) throws IOException {
+    public RtfText newText(String str) {
         return newText(str, null);
     }
 
@@ -139,13 +130,10 @@ implements IRtfTextContainer,
      * close current text run if any and start a new one
      * @param str if not null, added to the RtfText created
      * @param attr attributes of text to add
-     * @throws IOException for I/O problems
      * @return the new RtfText object
      */
-    public RtfText newText(String str, RtfAttributes attr) throws IOException {
-        closeAll();
-        mText = new RtfText(this, str, attr);
-        return mText;
+    public RtfText newText(String str, RtfAttributes attr) {
+        return new RtfText(this, str, attr);
     }
 
     /**
@@ -169,25 +157,9 @@ implements IRtfTextContainer,
      * add a line break
      * @throws IOException for I/O problems
      */
-    public void newLineBreak() throws IOException {
+    public void newLineBreak() {
         new RtfLineBreak(this);
     }
-
-
-    //////////////////////////////////////////////////
-    // @@ Common container methods
-    //////////////////////////////////////////////////
-
-    private void closeCurrentText() throws IOException {
-        if (mText != null) {
-            mText.close();
-        }
-    }
-
-    private void closeAll() throws IOException {
-        closeCurrentText();
-    }
-
 
     //////////////////////////////////////////////////
     // @@ Member access
@@ -227,8 +199,20 @@ implements IRtfTextContainer,
      * @return a text run
      * @throws IOException if not caught
      */
-    public RtfTextrun getTextrun() throws IOException {
-        RtfTextrun textrun = RtfTextrun.getTextrun(this, null);
-        return textrun;
+    public RtfTextrun getTextrun() {
+        return RtfTextrun.getTextrun(this, null);
+    }
+    
+    /** 
+     * {@inheritDoc}
+     * Closes any previous child.
+     */
+    protected void addChild(RtfElement e) {
+        RtfElement previousChild = getLastChild();
+        if (previousChild != null) {
+            previousChild.close();
+        }
+        
+        super.addChild(e);
     }
 }

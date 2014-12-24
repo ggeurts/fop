@@ -296,10 +296,8 @@ public class RtfExternalGraphic extends RtfElement {
      * Create an RTF element as a child of given container.
      *
      * @param container a <code>RtfContainer</code> value
-     * @throws IOException for I/O problems
      */
-    public RtfExternalGraphic(RtfContainer container)
-    throws IOException {
+    public RtfExternalGraphic(RtfContainer container) {
         super(container);
     }
 
@@ -308,10 +306,8 @@ public class RtfExternalGraphic extends RtfElement {
      *
      * @param container a <code>RtfContainer</code> value
      * @param attributes a <code>RtfAttributes</code> value
-     * @throws IOException for I/O problems
      */
-    public RtfExternalGraphic(RtfContainer container, RtfAttributes attributes) 
-    throws IOException {
+    public RtfExternalGraphic(RtfContainer container, RtfAttributes attributes) {
         super(container, attributes);
     }
 

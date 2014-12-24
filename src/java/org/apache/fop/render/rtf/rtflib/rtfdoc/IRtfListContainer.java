@@ -26,8 +26,6 @@ package org.apache.fop.render.rtf.rtflib.rtfdoc;
  * the FOP project.
  */
 
-import java.io.IOException;
-
 /**
  * <p>Interface for RtfElements that can contain RtfLists.</p>
  *
@@ -38,7 +36,6 @@ public interface IRtfListContainer {
     /** Close the current list, if any, and starts a new one
      * @param attrs attributes of new List
      * @return new List object
-     * @throws IOException for I/O problems
      */
-    RtfList newList(RtfAttributes attrs) throws IOException;
+    RtfList newList(RtfAttributes attrs);
 }

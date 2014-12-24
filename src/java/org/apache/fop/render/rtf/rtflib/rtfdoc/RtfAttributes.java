@@ -171,6 +171,13 @@ public class RtfAttributes implements Cloneable {
     }
 
     /**
+     * @return true if no attributes have been set.
+     */
+    public boolean isEmpty() {
+        return values.isEmpty();
+    }
+    
+    /**
      * @param name String containing attribute name
      * @return true if given attribute is set
      */

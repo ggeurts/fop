@@ -26,8 +26,6 @@ package org.apache.fop.render.rtf.rtflib.rtfdoc;
  * the FOP project.
  */
 
-import java.io.IOException;
-
 /**
  * Interface for objects containing page numbers
  */
@@ -36,7 +34,6 @@ public interface IRtfPageNumberContainer {
     /**
      *
      * @return new RtfPageNumber
-     * @throws IOException for I/O problems.
      */
-    RtfPageNumber newPageNumber() throws IOException;
+    RtfPageNumber newPageNumber();
 }

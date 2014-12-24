@@ -78,8 +78,7 @@ public final class RtfColorTable extends RtfElement {
     /**
      * Constructor.
      */
-    RtfColorTable(RtfHeader header) 
-    throws IOException {
+    RtfColorTable(RtfHeader header) {
         super(header);
     }
 

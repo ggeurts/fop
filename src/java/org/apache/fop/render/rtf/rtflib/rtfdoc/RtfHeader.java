@@ -49,7 +49,7 @@ public class RtfHeader extends RtfContainer {
     /** Create an RTF header
      * @param f the parent RTF file
      */
-    RtfHeader(RtfFile f) throws IOException {
+    RtfHeader(RtfFile f) {
         super(f);
         colorTable = new RtfColorTable(this);
         fontTable = new RtfFontTable(this);

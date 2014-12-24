@@ -50,8 +50,7 @@ public class RtfTable extends RtfContainer {
     private int nestedTableDepth;
 
     /** Create an RTF element as a child of given container */
-    RtfTable(IRtfTableContainer parent, ITableColumnsInfo tc)
-    throws IOException {
+    RtfTable(IRtfTableContainer parent, ITableColumnsInfo tc) {
         super((RtfContainer)parent);
         // Line added by Boris Poudérous on 07/22/2002
         tableContext = tc;
@@ -60,8 +59,7 @@ public class RtfTable extends RtfContainer {
     /** Create an RTF element as a child of given container
       * Modified by Boris Poudérous in order to process 'number-columns-spanned' attribute
       */
-    RtfTable(IRtfTableContainer parent, RtfAttributes attrs, ITableColumnsInfo tc) 
-    throws IOException {
+    RtfTable(IRtfTableContainer parent, RtfAttributes attrs, ITableColumnsInfo tc) {
         super((RtfContainer)parent, attrs);
         // Line added by Boris Poudérous on 07/22/2002
         tableContext = tc;

@@ -26,8 +26,6 @@ package org.apache.fop.render.rtf.rtflib.rtfdoc;
  * the FOP project.
  */
 
-import java.io.IOException;
-
 /**
  * <p>Interface for RtfElements that can contain RtfTables.</p>
  *
@@ -39,16 +37,14 @@ public interface IRtfTableContainer {
     * Close current table, if any, and start a new one
     * @param tc Table Columns Info
     * @return new table object
-    * @throws IOException for I/O problems
     */
-    RtfTable newTable(ITableColumnsInfo tc) throws IOException;
+    RtfTable newTable(ITableColumnsInfo tc);
 
    /**
     * Close current table, if any, and start a new one
     * @param attrs for the Table attributes
     * @param tc to process number-columns-spanned attribute
     * @return new table object
-    * @throws IOException for I/O problems
     */
-    RtfTable newTable(RtfAttributes attrs, ITableColumnsInfo tc) throws IOException;
+    RtfTable newTable(RtfAttributes attrs, ITableColumnsInfo tc);
 }

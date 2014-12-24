@@ -27,8 +27,7 @@ public class RtfParagraphBreak extends RtfElement {
 
     private String controlWord = DEFAULT_PARAGRAPH;
 
-    RtfParagraphBreak(RtfContainer parent)
-            throws IOException {
+    RtfParagraphBreak(RtfContainer parent) {
         super(parent);
     }
 

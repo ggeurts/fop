@@ -26,8 +26,6 @@ package org.apache.fop.render.rtf.rtflib.rtfdoc;
  * the FOP project.
  */
 
-import java.io.IOException;
-
 /**
  * Interface for classes containing images.
  */
@@ -36,7 +34,6 @@ public interface IRtfExternalGraphicContainer {
     /**
      * Creates a new image on external graphic base.
      * @return RtfExternalGraphic for the new image
-     * @exception IOException On error
      */
-    RtfExternalGraphic newImage() throws IOException;
+    RtfExternalGraphic newImage();
 }

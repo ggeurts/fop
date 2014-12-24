@@ -43,16 +43,15 @@ extends RtfContainer {
     public static final String FACING_PAGES = "facingp";
     
     /** Create an RTF element as a child of given container */
-    RtfDocumentArea(RtfFile f) throws IOException {
+    RtfDocumentArea(RtfFile f) {
         super(f);
     }
 
     /**
      * Close current RtfSection if any and create a new one
-     * @throws IOException for I/O problems
      * @return the new RtfSection
      */
-    public RtfSection newSection() throws IOException {
+    public RtfSection newSection() {
         if (currentSection != null) {
             currentSection.close();
         }
@@ -62,7 +61,7 @@ extends RtfContainer {
     
     /**
      * Indicates whether facing pages are supported.
-     * @return Indication whether rtf /facingp attribute has been set.
+     * @return Indication whether RTF /facingp attribute has been set.
      */
     public boolean hasFacingPages()
     {

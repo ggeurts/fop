@@ -46,7 +46,7 @@ public class RtfList extends RtfContainer {
     private static Random listIdGenerator = new Random(0);
 
     /** Create an RTF list as a child of given container with given attributes */
-    RtfList(RtfContainer parent, RtfAttributes attr) throws IOException {
+    RtfList(RtfContainer parent, RtfAttributes attr) {
         super(parent, attr);
 
         //random number generator for ids

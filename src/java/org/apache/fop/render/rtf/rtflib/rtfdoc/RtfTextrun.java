@@ -61,8 +61,7 @@ public class RtfTextrun extends RtfContainer {
     /**  Class which represents the opening of a RTF group mark.*/
     private class RtfOpenGroupMark extends RtfElement {
 
-        RtfOpenGroupMark(RtfContainer parent, RtfAttributes attr)
-                throws IOException {
+        RtfOpenGroupMark(RtfContainer parent, RtfAttributes attr) {
             super(parent, attr);
         }
 
@@ -84,8 +83,7 @@ public class RtfTextrun extends RtfContainer {
     private class RtfCloseGroupMark extends RtfElement {
         private int breakType = BREAK_NONE;
 
-        RtfCloseGroupMark(RtfContainer parent, int breakType)
-                  throws IOException {
+        RtfCloseGroupMark(RtfContainer parent, int breakType) {
             super(parent);
             this.breakType = breakType;
         }
@@ -137,27 +135,23 @@ public class RtfTextrun extends RtfContainer {
     }
 
     /** Create an RTF container as a child of given container */
-    RtfTextrun(RtfContainer parent, RtfAttributes attrs) throws IOException {
+    RtfTextrun(RtfContainer parent, RtfAttributes attrs) {
         super(parent, attrs);
     }
 
 
     /**
      * Adds instance of <code>OpenGroupMark</code> as a child with attributes.
-     *
      * @param attrs  attributes to add
-     * @throws IOException for I/O problems
      */
-    private void addOpenGroupMark(RtfAttributes attrs) throws IOException {
+    private void addOpenGroupMark(RtfAttributes attrs) {
         RtfOpenGroupMark r = new RtfOpenGroupMark(this, attrs);
     }
 
     /**
      * Adds instance of <code>CloseGroupMark</code> as a child.
-     *
-     * @throws IOException for I/O problems
      */
-    private void addCloseGroupMark(int breakType) throws IOException {
+    private void addCloseGroupMark(int breakType) {
         if (breakType == BREAK_NONE)
         {
             List children = getChildren();
@@ -176,11 +170,9 @@ public class RtfTextrun extends RtfContainer {
     /**
      * Pushes block attributes, notifies all opened blocks about pushing block
      * attributes, adds <code>OpenGroupMark</code> as a child.
-     *
      * @param attrs  the block attributes to push
-     * @throws IOException for I/O problems
      */
-    public void pushBlockAttributes(RtfAttributes attrs) throws IOException {
+    public void pushBlockAttributes(RtfAttributes attrs) {
         rtfSpaceManager.stopUpdatingSpaceBefore();
         RtfSpaceSplitter splitter = rtfSpaceManager.pushRtfSpaceSplitter(attrs);
         addOpenGroupMark(splitter.getCommonAttributes());
@@ -202,9 +194,8 @@ public class RtfTextrun extends RtfContainer {
      * Pushes inline attributes.
      *
      * @param attrs  the inline attributes to push
-     * @throws IOException for I/O problems
      */
-    public void pushInlineAttributes(RtfAttributes attrs) throws IOException {
+    public void pushInlineAttributes(RtfAttributes attrs) {
         
         rtfSpaceManager.pushInlineAttributes(attrs);
         addOpenGroupMark(attrs);
@@ -213,29 +204,24 @@ public class RtfTextrun extends RtfContainer {
     /**
      * Inserts a page number citation.
      * @param refId the identifier being referenced
-     * @throws IOException for I/O problems
      */
-    public void addPageNumberCitation(String refId) throws IOException {
+    public void addPageNumberCitation(String refId) {
         RtfPageNumberCitation r = new RtfPageNumberCitation(this, refId);
     }
 
     /**
      * Pop inline attributes.
-     *
-     * @throws IOException for I/O problems
      */
-    public void popInlineAttributes() throws IOException {
+    public void popInlineAttributes() {
         rtfSpaceManager.popInlineAttributes();
         addCloseGroupMark(BREAK_NONE);
     }
 
     /**
      * Add string to children list.
-     *
      * @param s  string to add
-     * @throws IOException for I/O problems
      */
-    public void addString(String s) throws IOException {
+    public void addString(String s) {
         if (s.equals("")) {
             return;
         }
@@ -250,21 +236,17 @@ public class RtfTextrun extends RtfContainer {
 
     /**
      * Inserts a footnote.
-     *
      * @return inserted footnote
-     * @throws IOException for I/O problems
      */
-    public RtfFootnote addFootnote() throws IOException {
+    public RtfFootnote addFootnote() {
         return new RtfFootnote(this);
     }
 
     /**
      * Inserts paragraph break before all close group marks.
-     *
-     * @throws IOException  for I/O problems
      * @return The paragraph break element
      */
-    public RtfParagraphBreak addParagraphBreak() throws IOException {
+    public RtfParagraphBreak addParagraphBreak() {
         List children = getChildren();
         
         // Don't add paragraph break at start of textrun
@@ -304,18 +286,16 @@ public class RtfTextrun extends RtfContainer {
     /**
      * Inserts a leader.
      * @param attrs Attributes for the leader
-     * @throws IOException for I/O problems
      */
-    public void addLeader(RtfAttributes attrs) throws IOException {
+    public void addLeader(RtfAttributes attrs) {
         new RtfLeader(this, attrs);
     }
 
     /**
      * Inserts a page number.
      * @param attr Attributes for the page number to insert.
-     * @throws IOException for I/O problems
      */
-    public void addPageNumber(RtfAttributes attr) throws IOException {
+    public void addPageNumber(RtfAttributes attr) {
         RtfPageNumber r = new RtfPageNumber(this, attr);
     }
 
@@ -323,18 +303,16 @@ public class RtfTextrun extends RtfContainer {
      * Inserts a hyperlink.
      * @param attr Attributes for the hyperlink to insert.
      * @return inserted hyperlink
-     * @throws IOException for I/O problems
      */
-    public RtfHyperLink addHyperlink(RtfAttributes attr) throws IOException {
+    public RtfHyperLink addHyperlink(RtfAttributes attr) {
         return new RtfHyperLink(this, attr);
     }
 
     /**
      * Inserts a bookmark.
      * @param id Id for the inserted bookmark
-     * @throws IOException for I/O problems
      */
-    public void addBookmark(String id) throws IOException {
+    public void addBookmark(String id) {
        if (id.length() > 0) {
             // if id is not empty, add bookmark
            new RtfBookmark(this, id);
@@ -344,9 +322,8 @@ public class RtfTextrun extends RtfContainer {
     /**
      * Inserts an image.
      * @return inserted image
-     * @throws IOException for I/O problems
      */
-    public RtfExternalGraphic newImage() throws IOException {
+    public RtfExternalGraphic newImage() {
         return new RtfExternalGraphic(this);
     }
 
@@ -357,8 +334,7 @@ public class RtfTextrun extends RtfContainer {
      * @throws IOException for I/O problems
      * @return the org.apache.fop.render.rtf.rtflib.rtfdoc.RtfTextrun
      */
-    public static RtfTextrun getTextrun(RtfContainer container, RtfAttributes attrs)
-    throws IOException {
+    public static RtfTextrun getTextrun(RtfContainer container, RtfAttributes attrs) {
         //if the last child is a RtfTextrun, return it
         List list = container.getChildren();
         if (!list.isEmpty()) {

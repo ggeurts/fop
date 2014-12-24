@@ -40,20 +40,18 @@ import org.apache.fop.apps.FOPException;
  */
 
 public class RtfTableRow extends RtfContainer implements ITableAttributes {
-    private RtfTableCell cell;
-//    private RtfExtraRowSet extraRowSet;
-    private int id;
+    private final int id;
     private int highestCell;
 
 
     /** Create an RTF element as a child of given container */
-    RtfTableRow(RtfTable parent, int idNum) throws IOException {
+    RtfTableRow(RtfTable parent, int idNum) {
         super(parent);
         id = idNum;
     }
 
     /** Create an RTF element as a child of given container */
-    RtfTableRow(RtfTable parent, RtfAttributes attrs, int idNum) throws IOException {
+    RtfTableRow(RtfTable parent, RtfAttributes attrs, int idNum) {
         super(parent, attrs);
         id = idNum;
     }
@@ -66,8 +64,7 @@ public class RtfTableRow extends RtfContainer implements ITableAttributes {
      */
     public RtfTableCell newTableCell(int cellWidth) throws IOException {
         highestCell++;
-        cell = new RtfTableCell(this, cellWidth, highestCell);
-        return cell;
+        return new RtfTableCell(this, cellWidth, highestCell);
     }
 
     /**
@@ -79,8 +76,7 @@ public class RtfTableRow extends RtfContainer implements ITableAttributes {
      */
     public RtfTableCell newTableCell(int cellWidth, RtfAttributes attrs) throws IOException {
         highestCell++;
-        cell = new RtfTableCell(this, cellWidth, attrs, highestCell);
-        return cell;
+        return new RtfTableCell(this, cellWidth, attrs, highestCell);
     }
 
     /**
@@ -95,7 +91,7 @@ public class RtfTableRow extends RtfContainer implements ITableAttributes {
     public RtfTableCell newTableCellMergedVertically(int cellWidth,
            RtfAttributes attrs) throws IOException {
         highestCell++;
-        cell = new RtfTableCell(this, cellWidth, attrs, highestCell);
+        RtfTableCell cell = new RtfTableCell(this, cellWidth, attrs, highestCell);
         cell.setVMerge(RtfTableCell.MERGE_WITH_PREVIOUS);
         return cell;
     }
@@ -123,7 +119,7 @@ public class RtfTableRow extends RtfContainer implements ITableAttributes {
             }
         }
 
-        cell = new RtfTableCell(this, cellWidth, wAttributes, highestCell);
+        RtfTableCell cell = new RtfTableCell(this, cellWidth, wAttributes, highestCell);
         cell.setHMerge(RtfTableCell.MERGE_WITH_PREVIOUS);
         return cell;
     }

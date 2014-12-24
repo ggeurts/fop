@@ -26,8 +26,6 @@ package org.apache.fop.render.rtf.rtflib.rtfdoc;
  * the FOP project.
  */
 
-import java.io.IOException;
-
 /**
  * <p>Null container.</p>
  *
@@ -36,7 +34,7 @@ import java.io.IOException;
 public class RtfNull
 extends RtfContainer {
 
-    RtfNull(RtfPage parent) throws IOException {
+    RtfNull(RtfPage parent) {
         super((RtfContainer)parent);
     }
 }

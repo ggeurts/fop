@@ -27,7 +27,6 @@ package org.apache.fop.render.rtf.rtflib.rtfdoc;
  */
 
 import java.io.IOException;
-import java.io.Writer;
 
 /**
  * <p>Plain text in a RTF file, without any formatings.</p>
@@ -38,10 +37,8 @@ import java.io.Writer;
 public class RtfString extends RtfElement {
     private String text = "";
 
-    RtfString(RtfContainer parent, String s)
-    throws IOException {
+    RtfString(RtfContainer parent, String s) {
         super(parent);
-
         text = s;
     }
 

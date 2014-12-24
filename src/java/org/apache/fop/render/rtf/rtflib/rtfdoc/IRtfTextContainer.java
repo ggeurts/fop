@@ -26,10 +26,6 @@ package org.apache.fop.render.rtf.rtflib.rtfdoc;
  * the FOP project.
  */
 
-import java.io.IOException;
-
-import org.apache.fop.apps.FOPException;
-
 /**
  * <p>Interface for RtfElements that can contain RtfText elements.</p>
  *
@@ -42,21 +38,18 @@ public interface IRtfTextContainer {
      * @param str if not null, added to the RtfText created
      * @param attr attributes for text
      * @return new text object
-     * @throws IOException for I/O problems
      */
-    RtfText newText(String str, RtfAttributes attr) throws IOException;
+    RtfText newText(String str, RtfAttributes attr);
 
     /**
      * Close current text run, if any, and start a new one with default attributes
      * @param str if not null, added to the RtfText created
      * @return a new text object
-     * @throws IOException for I/O problems
      */
-    RtfText newText(String str) throws IOException;
+    RtfText newText(String str);
 
     /**
      * Add a line break
-     * @throws IOException for I/O problems
      */
-    void newLineBreak() throws IOException;
+    void newLineBreak();
 }
