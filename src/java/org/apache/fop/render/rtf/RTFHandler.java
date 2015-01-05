@@ -521,7 +521,7 @@ public class RTFHandler extends FOEventHandler {
         }
 
         // create an RtfTable in the current table container
-        TableContext tableContext = new TableContext(builderContext);
+        TableContext tableContext = new TableContext();
 
         try {
             final IRtfTableContainer tc

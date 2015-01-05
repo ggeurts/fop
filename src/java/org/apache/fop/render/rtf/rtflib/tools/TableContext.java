@@ -42,7 +42,6 @@ import org.apache.fop.render.rtf.rtflib.rtfdoc.RtfAttributes;
 
 public class TableContext implements ITableColumnsInfo {
     private final Log log = new SimpleLog("FOP/RTF");
-    private final BuilderContext context;
     private final List colWidths = new java.util.ArrayList();
     private int colIndex;
 
@@ -65,7 +64,7 @@ public class TableContext implements ITableColumnsInfo {
     /**
      * This ArrayList contains one element for each column in the table.
      * value == true means, it's the first of multiple spanned columns
-     * value == false meanst, it's NOT the first of multiple spanned columns
+     * value == false means, it's NOT the first of multiple spanned columns
      */
     private final List colFirstSpanningCol = new java.util.ArrayList();
 
@@ -91,8 +90,7 @@ public class TableContext implements ITableColumnsInfo {
      *
      * @param ctx BuilderContext
      */
-    public TableContext(BuilderContext ctx) {
-        context = ctx;
+    public TableContext() {
     }
 
     /**
