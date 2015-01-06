@@ -37,14 +37,12 @@ import org.apache.fop.apps.FOPException;
  */
 
 public class RtfTable extends RtfContainer {
-    private RtfTableRow row;
     private int highestRow;
-    private Boolean isNestedTable;
     private RtfAttributes borderAttributes;
 
     /** Added by Boris Poudérous on 07/22/2002 in order to process
      *  number-columns-spanned attribute */
-    private ITableColumnsInfo tableContext;
+    private final ITableColumnsInfo tableContext;
 
     /** Shows the table depth necessary for nested tables */
     private int nestedTableDepth;
@@ -53,7 +51,8 @@ public class RtfTable extends RtfContainer {
     RtfTable(IRtfTableContainer parent, ITableColumnsInfo tc) {
         super((RtfContainer)parent);
         // Line added by Boris Poudérous on 07/22/2002
-        tableContext = tc;
+        this.tableContext = tc;
+        this.nestedTableDepth = calculateNestedTableDepth();
     }
 
     /** Create an RTF element as a child of given container
@@ -62,27 +61,23 @@ public class RtfTable extends RtfContainer {
     RtfTable(IRtfTableContainer parent, RtfAttributes attrs, ITableColumnsInfo tc) {
         super((RtfContainer)parent, attrs);
         // Line added by Boris Poudérous on 07/22/2002
-        tableContext = tc;
+        this.tableContext = tc;
+        this.nestedTableDepth = calculateNestedTableDepth();
     }
-
+    
     /**
      * Close current row if any and start a new one
      * @return new RtfTableRow
      * @throws IOException for I/O problems
      */
     public RtfTableRow newTableRow() throws IOException {
-        if (row != null) {
-            row.close();
-        }
-
         highestRow++;
-        row = new RtfTableRow(this, attrib, highestRow);
-        return row;
+        return new RtfTableRow(this, attrib, highestRow);
     }
 
     /**
      * Close current row if any and start a new one
-     * @param attrs attributs of new RtfTableRow
+     * @param attrs attributes of new RtfTableRow
      * @return new RtfTableRow
      * @throws IOException for I/O problems
      * @throws FOPException if attributes cannot be cloned
@@ -99,35 +94,9 @@ public class RtfTable extends RtfContainer {
         } else {
             attr = attrs;
         }
-        if (row != null) {
-            row.close();
-        }
         highestRow++;
 
-        row = new RtfTableRow(this, attr, highestRow);
-        return row;
-    }
-
-
-
-    /** {@inheritDoc} */
-    protected void writeRtfPrefix(RtfWriter w) throws IOException {
-        if (isNestedTable()) {
-            w.writeControlWord("pard");
-        }
-        w.writeGroupMark(true);
-    }
-
-    /**
-     * Overridden to write RTF suffix code, what comes after our children
-     * @param w the value of w
-     * @throws IOException for I/O problems
-     */
-    protected void writeRtfSuffix(RtfWriter w) throws IOException {
-        w.writeGroupMark(false);
-        if (isNestedTable()) {
-            getRow().writeRowAndCellsDefintions(w);
-        }
+        return new RtfTableRow(this, attr, highestRow);
     }
 
     /**
@@ -136,7 +105,7 @@ public class RtfTable extends RtfContainer {
      * @return true if id is the highestRow
      */
     public boolean isHighestRow(int id) {
-        return (highestRow == id) ? true : false;
+        return highestRow == id;
     }
 
     /**
@@ -181,23 +150,7 @@ public class RtfTable extends RtfContainer {
 
     /** @return true if the the table is a nested table */
     public boolean isNestedTable() {
-        if (isNestedTable == null) {
-            RtfElement e = this;
-            while (e.parent != null) {
-                if (e.parent instanceof RtfTableCell) {
-                    isNestedTable = Boolean.TRUE;
-                    return true;
-                }
-
-                e = e.parent;
-            }
-
-            isNestedTable = Boolean.FALSE;
-        } else {
-            return isNestedTable.booleanValue();
-        }
-
-        return false;
+        return nestedTableDepth > 0;
     }
 
     /**
@@ -247,5 +200,31 @@ public class RtfTable extends RtfContainer {
      */
     public RtfAttributes getBorderAttributes() {
         return borderAttributes;
+    }
+
+    /** 
+     * {@inheritDoc}
+     * Closes any previous child.
+     */
+    protected void addChild(RtfElement e) {
+        RtfElement previousChild = getLastChild();
+        if (previousChild != null) {
+            previousChild.close();
+        }
+
+        super.addChild(e);
+    }
+    
+    /**
+     * Calculates table nesting level of this element.
+     * 
+     * @return The table nesting level. Zero if this element is not nested in a table.
+     */
+    private int calculateNestedTableDepth()
+    {
+        RtfTable parentTable = (RtfTable)getParentOfClass(RtfTable.class);
+        return parentTable != null 
+                ? parentTable.getNestedTableDepth() + 1 
+                : 0;
     }
 }

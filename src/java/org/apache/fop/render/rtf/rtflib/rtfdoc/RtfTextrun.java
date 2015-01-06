@@ -250,7 +250,7 @@ public class RtfTextrun extends RtfContainer {
         List children = getChildren();
         
         // Don't add paragraph break at start of textrun
-        if (children.size() == 0) return null;
+        if (children.isEmpty()) return null;
         
         ListIterator lit = children.listIterator(children.size());
         int markCount = 0;
@@ -296,7 +296,7 @@ public class RtfTextrun extends RtfContainer {
      * @param attr Attributes for the page number to insert.
      */
     public void addPageNumber(RtfAttributes attr) {
-        RtfPageNumber r = new RtfPageNumber(this, attr);
+        new RtfPageNumber(this, attr);
     }
 
     /**
@@ -367,10 +367,6 @@ public class RtfTextrun extends RtfContainer {
         
         int groupLevel = 0;
         
-        boolean bHasTableCellParent
-            = this.getParentOfClass(RtfTableCell.class) != null;
-        RtfAttributes attrBlockLevel = new RtfAttributes();
-
         //may contain for example \intbl
         w.writeAttributes(attrib, null);
 
@@ -383,10 +379,6 @@ public class RtfTextrun extends RtfContainer {
             final RtfElement e = (RtfElement)it.next();
             final boolean bRtfParagraphBreak = (e instanceof RtfParagraphBreak);
 
-            if (bHasTableCellParent) {
-                attrBlockLevel.set(e.getRtfAttributes());
-            }
-            
             if (e instanceof RtfOpenGroupMark) {
                 if (groupLevel++ == 0) {
                     w.newLine();
@@ -401,11 +393,6 @@ public class RtfTextrun extends RtfContainer {
                 // May cause bug where list item symbol is written multiple times...
                 rtfListItem.getRtfListStyle().writeParagraphPrefix(w);
             }
-        } //for (Iterator it = ...)
-
-        //
-        if (bHasTableCellParent) {
-            w.writeAttributes(attrBlockLevel, null);
         }
     }
 
@@ -437,8 +424,7 @@ public class RtfTextrun extends RtfContainer {
         
         while (lit.hasPrevious()) {
             RtfElement element = (RtfElement)lit.previous();
-            if (element instanceof RtfParagraphBreak
-                    && ((RtfParagraphBreak)element).canHide()) {
+            if (element instanceof RtfParagraphBreak) {
                 lit.remove();
             }
             

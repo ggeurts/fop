@@ -148,8 +148,6 @@ public class RTFHandler extends FOEventHandler {
     
     private boolean bDefer;              //true, if each called handler shall be
                                          //processed at later time.
-    private int nestedTableDepth = 1;
-
 
     /**
      * Creates a new RTF structure handler.
@@ -430,19 +428,11 @@ public class RTFHandler extends FOEventHandler {
         }
 
         try {
-            IRtfTextrunContainer container
-                = (IRtfTextrunContainer)builderContext.getContainer(
-                    IRtfTextrunContainer.class,
-                    true, this);
+            IRtfTextrunContainer container = (IRtfTextrunContainer)
+                    builderContext.getContainer(IRtfTextrunContainer.class, true, this);
 
             RtfTextrun textrun = container.getTextrun();
-            RtfParagraphBreak par = textrun.addParagraphBreak();
-
-            RtfTableCell cellParent = (RtfTableCell)textrun.getParentOfClass(RtfTableCell.class);
-            if (cellParent != null && par != null) {
-                int iDepth = cellParent.findChildren(textrun);
-                cellParent.setLastParagraph(par, iDepth);
-            }
+            textrun.addParagraphBreak();
 
             int breakValue = toRtfBreakValue(bl.getBreakAfter());
             textrun.popBlockAttributes(breakValue);
@@ -532,8 +522,6 @@ public class RTFHandler extends FOEventHandler {
                 = TableAttributesConverter.convertTableAttributes(tbl);
 
             RtfTable table = tc.newTable(atts, tableContext);
-            table.setNestedTableDepth(nestedTableDepth);
-            nestedTableDepth++;
 
             CommonBorderPaddingBackground border = tbl.getCommonBorderPaddingBackground();
             RtfAttributes borderAttributes = new RtfAttributes();
@@ -564,7 +552,6 @@ public class RTFHandler extends FOEventHandler {
             return;
         }
 
-        nestedTableDepth--;
         builderContext.popTableContext();
         builderContext.popContainer(RtfTable.class, this);
     }
@@ -867,13 +854,6 @@ public class RTFHandler extends FOEventHandler {
     public void endCell(TableCell tc) {
         if (bDefer) {
             return;
-        }
-        try {
-            RtfTableCell cell = (RtfTableCell)builderContext.getContainer(RtfTableCell.class, false, this);
-            cell.finish();
-        } catch (Exception e) {
-            log.error("endCell: " + e.getMessage());
-            throw new RuntimeException(e.getMessage());
         }
 
         builderContext.popContainer(RtfTableCell.class, this);

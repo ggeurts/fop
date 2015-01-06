@@ -23,10 +23,6 @@ import java.io.IOException;
 
 /**  Class which represents a paragraph break.*/
 public class RtfParagraphBreak extends RtfElement {
-    private static final String DEFAULT_PARAGRAPH = "par";
-
-    private String controlWord = DEFAULT_PARAGRAPH;
-
     RtfParagraphBreak(RtfContainer parent) {
         super(parent);
     }
@@ -40,26 +36,6 @@ public class RtfParagraphBreak extends RtfElement {
 
     /** {@inheritDoc} */
     protected void writeRtfContent(RtfWriter w) throws IOException {
-        if (controlWord != null) {
-            w.writeControlWord(controlWord);
-        }
-    }
-
-    /**
-     * Whether or not the break can be skipped.
-     * If the paragraph marks a table cell end it is not possible
-     * @return boolean
-     */
-    public boolean canHide() {
-        return this.controlWord.equals(DEFAULT_PARAGRAPH);
-    }
-
-    /**
-     * Sets a different control word for this paragraph. If this method
-     * is used the paragraph will always be displayed (@see canHide))
-     * @param controlWord the new control word
-     */
-    public void switchControlWord(String controlWord) {
-        this.controlWord = controlWord;
+        w.writeControlWord("par");
     }
 }

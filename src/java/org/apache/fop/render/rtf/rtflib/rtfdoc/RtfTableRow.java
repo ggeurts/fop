@@ -45,15 +45,15 @@ public class RtfTableRow extends RtfContainer implements ITableAttributes {
 
 
     /** Create an RTF element as a child of given container */
-    RtfTableRow(RtfTable parent, int idNum) {
+    RtfTableRow(RtfTable parent, int id) {
         super(parent);
-        id = idNum;
+        this.id = id;
     }
 
     /** Create an RTF element as a child of given container */
-    RtfTableRow(RtfTable parent, RtfAttributes attrs, int idNum) {
+    RtfTableRow(RtfTable parent, RtfAttributes attrs, int id) {
         super(parent, attrs);
-        id = idNum;
+        this.id = id;
     }
 
     /**
@@ -127,172 +127,14 @@ public class RtfTableRow extends RtfContainer implements ITableAttributes {
     /** {@inheritDoc} */
     protected void writeRtfPrefix(RtfWriter w) throws IOException {
         w.newLine();
-        w.writeGroupMark(true);
-    }
-
-    /**
-     * Overridden to write trowd and cell definitions before writing our cells
-     * {@inheritDoc}
-     */
-    protected void writeRtfContent(RtfWriter w) throws IOException {
+        
         if (getTable().isNestedTable()) {
-            //nested table
-            w.writeControlWord("intbl");
-            //itap is the depth (level) of the current nested table
-            w.writeControlWord("itap" + getTable().getNestedTableDepth());
+            w.writeGroupMark(true);
         } else {
-            //normal (not nested) table
-            writeRowAndCellsDefintions(w);
-        }
-        // now children can write themselves, we have the correct RTF prefix code
-        super.writeRtfContent(w);
-    }
-
-    /**
-     * @param w The {@link RtfWriter} to write to.
-     * @throws IOException In case of a IO-problem
-     */
-    public void writeRowAndCellsDefintions(RtfWriter w) throws IOException {
-        // render the row and cells definitions
-        w.writeControlWord("trowd");
-
-        if (!getTable().isNestedTable()) {
-            w.writeControlWord("itap0");
+            writeRowAndCellsDefinitions(w);
         }
 
-        //check for keep-together
-        if (attrib.isSet(ITableAttributes.ROW_KEEP_TOGETHER)) {
-            w.writeControlWord(ROW_KEEP_TOGETHER);
-        }
-
-        writePaddingAttributes(w);
-
-        final RtfTable parentTable = (RtfTable) parent;
-        adjustBorderProperties(parentTable);
-
-        w.writeAttributes(attrib, new String[]{ITableAttributes.ATTR_HEADER});
-        w.writeAttributes(attrib, ITableAttributes.ROW_BORDER);
-        w.writeAttributes(attrib, ITableAttributes.CELL_BORDER);
-        w.writeAttributes(attrib, IBorderAttributes.BORDERS);
-
-        if (attrib.isSet(ITableAttributes.ROW_HEIGHT)) {
-            w.writeOneAttribute(
-                    ITableAttributes.ROW_HEIGHT,
-                    attrib.getValue(ITableAttributes.ROW_HEIGHT));
-        }
-
-        // write X positions of our cells
-        int xPos = 0;
-
-        final Object leftIndent = attrib.getValue(ITableAttributes.ATTR_ROW_LEFT_INDENT);
-        if (leftIndent != null) {
-            xPos = ((Integer)leftIndent).intValue();
-        }
-
-        RtfAttributes tableBorderAttributes = getTable().getBorderAttributes();
-
-        int index = 0;
-        for (Iterator it = getChildren().iterator(); it.hasNext();) {
-            final RtfElement e = (RtfElement)it.next();
-            if (e instanceof RtfTableCell) {
-
-                RtfTableCell rtfcell = (RtfTableCell)e;
-
-                // Adjust the cell's display attributes so the table's/row's borders
-                // are drawn properly.
-
-                if (tableBorderAttributes != null) {
-                    // get border attributes from table
-                    if (index == 0) {
-                        String border = ITableAttributes.CELL_BORDER_LEFT;
-                        if (!rtfcell.getRtfAttributes().isSet(border)) {
-                            rtfcell.getRtfAttributes().set(border,
-                                (RtfAttributes) tableBorderAttributes.getValue(border));
-                        }
-                    }
-
-                    if (index == this.getChildCount() - 1) {
-                        String border = ITableAttributes.CELL_BORDER_RIGHT;
-                        if (!rtfcell.getRtfAttributes().isSet(border)) {
-                            rtfcell.getRtfAttributes().set(border,
-                                (RtfAttributes) tableBorderAttributes.getValue(border));
-                        }
-                    }
-
-                    if (isFirstRow()) {
-                        String border = ITableAttributes.CELL_BORDER_TOP;
-                        if (!rtfcell.getRtfAttributes().isSet(border)) {
-                            rtfcell.getRtfAttributes().set(border,
-                                (RtfAttributes) tableBorderAttributes.getValue(border));
-                        }
-                    }
-
-                    if ((parentTable != null) && (parentTable.isHighestRow(id))) {
-                        String border = ITableAttributes.CELL_BORDER_BOTTOM;
-                        if (!rtfcell.getRtfAttributes().isSet(border)) {
-                            rtfcell.getRtfAttributes().set(border,
-                                (RtfAttributes) tableBorderAttributes.getValue(border));
-                        }
-                    }
-                }
-
-                // get border attributes from row
-                if (index == 0) {
-                    if (!rtfcell.getRtfAttributes().isSet(ITableAttributes.CELL_BORDER_LEFT)) {
-                        rtfcell.getRtfAttributes().set(ITableAttributes.CELL_BORDER_LEFT,
-                            (String) attrib.getValue(ITableAttributes.ROW_BORDER_LEFT));
-                    }
-                }
-
-                if (index == this.getChildCount() - 1) {
-                    if (!rtfcell.getRtfAttributes().isSet(ITableAttributes.CELL_BORDER_RIGHT)) {
-                        rtfcell.getRtfAttributes().set(ITableAttributes.CELL_BORDER_RIGHT,
-                            (String) attrib.getValue(ITableAttributes.ROW_BORDER_RIGHT));
-                    }
-                }
-
-                if (isFirstRow()) {
-                    if (!rtfcell.getRtfAttributes().isSet(ITableAttributes.CELL_BORDER_TOP)) {
-                        rtfcell.getRtfAttributes().set(ITableAttributes.CELL_BORDER_TOP,
-                            (String) attrib.getValue(ITableAttributes.ROW_BORDER_TOP));
-                    }
-                }
-
-                if ((parentTable != null) && (parentTable.isHighestRow(id))) {
-                    if (!rtfcell.getRtfAttributes().isSet(ITableAttributes.CELL_BORDER_BOTTOM)) {
-                        rtfcell.getRtfAttributes().set(ITableAttributes.CELL_BORDER_BOTTOM,
-                            (String) attrib.getValue(ITableAttributes.ROW_BORDER_BOTTOM));
-                    }
-                }
-
-                // write cell's definition
-                xPos = rtfcell.writeCellDef(w, xPos);
-            }
-          index++; // Added by Boris POUDEROUS on 2002/07/02
-        }
-
-        w.newLine();
-    }
-
-    private void adjustBorderProperties(RtfTable parentTable) {
-        // if we have attributes, manipulate border properties
-        if (attrib != null && parentTable != null) {
-
-            //if table is only one row long
-            if (isFirstRow() && parentTable.isHighestRow(id)) {
-                attrib.unset(ITableAttributes.ROW_BORDER_HORIZONTAL);
-            //or if row is the first row
-            } else if (isFirstRow()) {
-                attrib.unset(ITableAttributes.ROW_BORDER_BOTTOM);
-            //or if row is the last row
-            } else if (parentTable.isHighestRow(id)) {
-                attrib.unset(ITableAttributes.ROW_BORDER_TOP);
-            //else the row is an inside row
-            } else {
-                attrib.unset(ITableAttributes.ROW_BORDER_BOTTOM);
-                attrib.unset(ITableAttributes.ROW_BORDER_TOP);
-            }
-        }
+        super.writeRtfPrefix(w);
     }
 
     /** {@inheritDoc} */
@@ -301,7 +143,7 @@ public class RtfTableRow extends RtfContainer implements ITableAttributes {
             //nested table
             w.writeGroupMark(true);
             w.writeStarControlWord("nesttableprops");
-            writeRowAndCellsDefintions(w);
+            writeRowAndCellsDefinitions(w);
             w.writeControlWord("nestrow");
             w.writeGroupMark(false);
 
@@ -309,11 +151,95 @@ public class RtfTableRow extends RtfContainer implements ITableAttributes {
             w.writeControlWord("nonesttables");
             w.writeControlWord("par");
             w.writeGroupMark(false);
+            w.writeGroupMark(false);
         } else {
             w.writeControlWord("row");
         }
+    }
 
-        w.writeGroupMark(false);
+    /**
+     * @param w The {@link RtfWriter} to write to.
+     * @throws IOException In case of a IO-problem
+     */
+    public void writeRowAndCellsDefinitions(RtfWriter w) throws IOException {
+        // render the row and cells definitions
+        w.writeControlWord("trowd");
+
+        //check for keep-together
+        if (attrib.isSet(ITableAttributes.ROW_KEEP_TOGETHER)) {
+            w.writeControlWord(ROW_KEEP_TOGETHER);
+        }
+
+        writePaddingAttributes(w);
+
+        w.writeAttributes(attrib, new String[] {
+            ITableAttributes.ATTR_HEADER, 
+            ITableAttributes.ROW_HEIGHT
+        });
+        w.writeAttributes(attrib, ITableAttributes.ROW_BORDER);
+        w.writeAttributes(attrib, ITableAttributes.CELL_BORDER);
+        w.writeAttributes(attrib, IBorderAttributes.BORDERS);
+
+        // write X positions of our cells
+        final Integer leftIndent = (Integer)attrib.getValue(ITableAttributes.ATTR_ROW_LEFT_INDENT);
+        int xPos = leftIndent != null ? leftIndent : 0;
+
+        int index = 0;
+        for (Iterator it = getChildren().iterator(); it.hasNext();) {
+            final RtfElement e = (RtfElement)it.next();
+            if (e instanceof RtfTableCell) {
+
+                RtfTableCell rtfCell = (RtfTableCell)e;
+
+                // Adjust the cell's display attributes so the table's/row's borders
+                // are drawn properly.
+                if (index == 0) {
+                    adjustCellBorder(rtfCell.getRtfAttributes(),
+                            ITableAttributes.CELL_BORDER_LEFT, 
+                            ITableAttributes.ROW_BORDER_LEFT);
+                }
+                if (index == this.getChildCount() - 1) {
+                    adjustCellBorder(rtfCell.getRtfAttributes(),
+                            ITableAttributes.CELL_BORDER_RIGHT, 
+                            ITableAttributes.ROW_BORDER_RIGHT);
+                }
+                if (isFirstRow()) {
+                    adjustCellBorder(rtfCell.getRtfAttributes(),
+                            ITableAttributes.CELL_BORDER_TOP, 
+                            ITableAttributes.ROW_BORDER_TOP);
+                }
+                if (isLastRow()) {
+                    adjustCellBorder(rtfCell.getRtfAttributes(),
+                            ITableAttributes.CELL_BORDER_BOTTOM, 
+                            ITableAttributes.ROW_BORDER_BOTTOM);
+                }
+
+                // write cell's definition
+                xPos = rtfCell.writeCellDef(w, xPos);
+            }
+            
+            index++; // Added by Boris POUDEROUS on 2002/07/02
+        }
+
+        w.newLine();
+    }
+    
+    private void adjustCellBorder(RtfAttributes cellAttrs, 
+            String cellBorder, String rowBorder) {
+        
+        if (cellAttrs.isSet(cellBorder)) {
+            return;
+        }
+        
+        if (attrib.isSet(rowBorder)) {
+            cellAttrs.set(cellBorder, (String) attrib.getValue(rowBorder));
+            return;
+        } 
+
+        RtfAttributes tableBorderAttrs = getTable().getBorderAttributes();
+        if (tableBorderAttrs != null && tableBorderAttrs.isSet(cellBorder)) {
+            cellAttrs.set(cellBorder, (RtfAttributes) tableBorderAttrs.getValue(cellBorder));
+        }
     }
 
     private void writePaddingAttributes(RtfWriter w)
@@ -328,11 +254,11 @@ public class RtfTableRow extends RtfContainer implements ITableAttributes {
                 // set (RTF 1.5) gaph to the average of the (RTF 1.6) left and right padding values
                 final Integer leftPadStr = (Integer)attrib.getValue(ATTR_ROW_PADDING_LEFT);
                 if (leftPadStr != null) {
-                    gaph = leftPadStr.intValue();
+                    gaph = leftPadStr;
                 }
                 final Integer rightPadStr = (Integer)attrib.getValue(ATTR_ROW_PADDING_RIGHT);
                 if (rightPadStr != null) {
-                    gaph = (gaph + rightPadStr.intValue()) / 2;
+                    gaph = (gaph + rightPadStr) / 2;
                 }
             } catch (Exception e) {
                 final String msg = "RtfTableRow.writePaddingAttributes: " + e.toString();
@@ -352,13 +278,12 @@ public class RtfTableRow extends RtfContainer implements ITableAttributes {
     public boolean isFirstRow() {
         return (id == 1);
     }
-
+    
     /**
-     * @param cellId cell id to check
-     * @return true if the cell is the highest cell
+     * @return true if the row is the last in the table
      */
-    public boolean isHighestCell(int cellId) {
-        return (highestCell == cellId) ? true : false;
+    public boolean isLastRow() {
+        return getTable().isHighestRow(id);
     }
 
     /**
@@ -366,15 +291,6 @@ public class RtfTableRow extends RtfContainer implements ITableAttributes {
      * @return Parent table of the row.
      */
     public RtfTable getTable() {
-        RtfElement e = this;
-        while (e.parent != null) {
-            if (e.parent instanceof RtfTable) {
-                return (RtfTable) e.parent;
-            }
-
-            e = e.parent;
-        }
-
-        return null;
+        return (RtfTable)parent;
     }
 }

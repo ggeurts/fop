@@ -54,9 +54,6 @@ implements IRtfTextContainer, IRtfPageBreakContainer, IRtfHyperLinkContainer,
            correctly */
     private boolean writeForBreak;
 
-    /** Set of attributes that must be copied at the start of a paragraph */
-    private static final String[] PARA_ATTRIBUTES = {"intbl"};
-
     /** Create an RTF paragraph as a child of given container with default attributes */
     RtfParagraph(IRtfParagraphContainer parent) {
         super((RtfContainer)parent);
@@ -92,9 +89,9 @@ implements IRtfTextContainer, IRtfPageBreakContainer, IRtfHyperLinkContainer,
     protected void writeRtfPrefix(RtfWriter w) throws IOException {
 
         //Reset paragraph properties if needed
-           if (resetProperties) {
-               w.writeControlWord("pard");
-           }
+        if (resetProperties) {
+            w.writeControlWord("pard");
+        }
 
         /*
          * Original comment said "do not write text attributes here, they are
@@ -102,12 +99,6 @@ implements IRtfTextContainer, IRtfPageBreakContainer, IRtfHyperLinkContainer,
          * relevant to paragraphs as well.
          */
         w.writeAttributes(attrib, RtfText.ATTR_NAMES);
-        w.writeAttributes(attrib, PARA_ATTRIBUTES);
-        // Added by Normand Masse
-        // Write alignment attributes after \intbl for cells
-        if (attrib.isSet("intbl") && mustWriteAttributes()) {
-            w.writeAttributes(attrib, RtfText.ALIGNMENT);
-        }
 
         //Set keepn if needed (Keep paragraph with the next paragraph)
         if (keepn) {
@@ -119,14 +110,9 @@ implements IRtfTextContainer, IRtfPageBreakContainer, IRtfHyperLinkContainer,
             w.writeGroupMark(true);
         }
 
-
         if (mustWriteAttributes()) {
-            // writeAttributes(m_attrib, new String [] {"cs"});
-            // Added by Normand Masse
-            // If \intbl then attributes have already been written (see higher in method)
-            if (!attrib.isSet("intbl")) {
-                w.writeAttributes(attrib, RtfText.ALIGNMENT);
-            }
+            w.writeAttributes(attrib, RtfText.ALIGNMENT);
+
             //this line added by Chris Scott, Westinghouse
             w.writeAttributes(attrib, RtfText.BORDER);
             w.writeAttributes(attrib, RtfText.INDENT);

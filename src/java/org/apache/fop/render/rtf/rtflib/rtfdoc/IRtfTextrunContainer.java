@@ -23,8 +23,6 @@ package org.apache.fop.render.rtf.rtflib.rtfdoc;
  * This file is part of the RTF library of the FOP project.
  */
 
-import java.io.IOException;
-
 /**
  * <p>Interface which enables an implementing class to contain linear text runs.</p>
  *
@@ -37,7 +35,6 @@ public interface IRtfTextrunContainer {
      * Returns the current RtfTextrun object.
      * Opens a new one if necessary.
      * @return The RtfTextrun object
-     * @throws IOException Thrown when an IO-problem occurs
      */
     RtfTextrun getTextrun();
 }

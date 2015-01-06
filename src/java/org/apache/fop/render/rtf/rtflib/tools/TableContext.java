@@ -88,14 +88,13 @@ public class TableContext implements ITableColumnsInfo {
 
     /**
      *
-     * @param ctx BuilderContext
      */
     public TableContext() {
     }
 
     /**
      * Adds a column and sets its width.
-     * @param width Width of next column
+     * @param width Width of next column in Twips.
      */
     public void setNextColumnWidth(Float width) {
         colWidths.add(width);
@@ -123,7 +122,7 @@ public class TableContext implements ITableColumnsInfo {
      */
     public boolean getFirstSpanningCol() {
         Boolean b = (Boolean) colFirstSpanningCol.get(colIndex);
-        return b.booleanValue();
+        return b;
     }
 
     /**
@@ -159,16 +158,14 @@ public class TableContext implements ITableColumnsInfo {
      * @param bFirstSpanningCol specifies, if it's the first of
      *                          multiple spanned columns
      */
-    public void setCurrentFirstSpanningCol(
-            boolean bFirstSpanningCol) {
-
+    public void setCurrentFirstSpanningCol(boolean bFirstSpanningCol) {
         if (colIndex < colRowSpanningNumber.size()) {
             while (colIndex >= colFirstSpanningCol.size()) {
                 setNextFirstSpanningCol(false);
             }
-            colFirstSpanningCol.set(colIndex, Boolean.valueOf(bFirstSpanningCol));
+            colFirstSpanningCol.set(colIndex, bFirstSpanningCol);
         } else {
-            colFirstSpanningCol.add(Boolean.valueOf(bFirstSpanningCol));
+            colFirstSpanningCol.add(bFirstSpanningCol);
         }
     }
 
@@ -177,9 +174,8 @@ public class TableContext implements ITableColumnsInfo {
      * @param bFirstSpanningCol specifies, if it's the first of
      *                          multiple spanned columns
      */
-    public void setNextFirstSpanningCol(
-            boolean bFirstSpanningCol) {
-        colFirstSpanningCol.add(Boolean.valueOf(bFirstSpanningCol));
+    public void setNextFirstSpanningCol(boolean bFirstSpanningCol) {
+        colFirstSpanningCol.add(bFirstSpanningCol);
     }
 
     /**
@@ -192,15 +188,15 @@ public class TableContext implements ITableColumnsInfo {
         for (int z = 0; z < colRowSpanningNumber.size(); ++z) {
             Integer i = (Integer)colRowSpanningNumber.get(z);
 
-            if (i.intValue() > 0) {
-                i = new Integer(i.intValue() - 1);
+            if (i > 0) {
+                i = i - 1;
             }
 
             colRowSpanningNumber.set(z, i);
 
-            if (i.intValue() == 0) {
+            if (i == 0) {
                 colRowSpanningAttrs.set(z, null);
-                colFirstSpanningCol.set(z, Boolean.valueOf(false));
+                colFirstSpanningCol.set(z, false);
             }
         }
     }
@@ -236,10 +232,10 @@ public class TableContext implements ITableColumnsInfo {
             log.warn("Column width for column " + (colIndex + 1) + " is not defined, using "
                     + INVALID_COLUMN_WIDTH);
             while (colIndex >= getNumberOfColumns()) {
-                setNextColumnWidth(new Float(INVALID_COLUMN_WIDTH));
+                setNextColumnWidth(INVALID_COLUMN_WIDTH);
             }
         }
-        return ((Float)colWidths.get(colIndex)).floatValue();
+        return ((Float)colWidths.get(colIndex));
     }
 
     /**

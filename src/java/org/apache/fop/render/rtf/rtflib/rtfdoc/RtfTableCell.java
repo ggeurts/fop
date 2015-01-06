@@ -28,7 +28,6 @@ package org.apache.fop.render.rtf.rtflib.rtfdoc;
 
 import java.io.IOException;
 import java.util.Iterator;
-import org.apache.fop.render.rtf.rtflib.exceptions.RtfStructureException;
 
 /**
  * <p>A cell in an RTF table, container for paragraphs, lists, etc.</p>
@@ -40,25 +39,6 @@ public class RtfTableCell
         extends RtfContainer
         implements IRtfParagraphContainer, IRtfListContainer, IRtfTableContainer,
             IRtfExternalGraphicContainer, IRtfTextrunContainer {
-    private boolean setCenter;
-    private boolean setRight;
-    private boolean containsNestedTable;
-    private final int id;
-    private RtfParagraphBreak lastBreak;
-    private int lastBreakDepth = Integer.MIN_VALUE;
-
-    private static final String TABLE_CELL_PARAGRAPH = "cell";
-    private static final String TABLE_CELL_NESTED_PARAGRAPH = "nestcell";
-
-    /** default cell width (in twips ??) */
-    public static final int DEFAULT_CELL_WIDTH = 2000;
-
-    /** cell width in twips */
-    private final int cellWidth;
-
-    /** cell merging has three states */
-    private int vMerge = NO_MERGE;
-    private int hMerge = NO_MERGE;
 
     /** cell merging: this cell is not merged */
     public static final int NO_MERGE = 0;
@@ -68,6 +48,17 @@ public class RtfTableCell
 
     /** cell merging: this cell is part of (but not the start of) a range of merged cells */
     public static final int MERGE_WITH_PREVIOUS = 2;
+    
+    private boolean setCenter;
+    private boolean setRight;
+    private final int id;
+
+    /** cell width in twips */
+    private final int cellWidth;
+
+    /** cell merging has three states */
+    private int vMerge = NO_MERGE;
+    private int hMerge = NO_MERGE;
 
     /** Create an RTF element as a child of given container */
     RtfTableCell(RtfTableRow parent, int cellWidth, int idNum) {
@@ -91,24 +82,13 @@ public class RtfTableCell
      * @return new RtfParagraph object
      */
     public RtfParagraph newParagraph(RtfAttributes attrs) {
-        // in tables, RtfParagraph must have the intbl attribute
-        if (attrs == null) {
-            attrs = new RtfAttributes();
-        }
-
-        attrs.set("intbl");
         RtfParagraph paragraph = new RtfParagraph(this, attrs);
 
         if (paragraph.attrib.isSet("qc")) {
             setCenter = true;
-            attrs.set("qc");
         } else if (paragraph.attrib.isSet("qr")) {
             setRight = true;
-            attrs.set("qr");
-        } else {
-            attrs.set("ql");
         }
-        attrs.set("intbl");
 
         //lines modified by Chris Scott, Westinghouse
         return paragraph;
@@ -240,12 +220,10 @@ public class RtfTableCell
             w.writeControlWord("trqc");
         } else if (setRight) {
             w.writeControlWord("trqr");
-        } else {
-            w.writeControlWord("trql");
         }
+        
         w.writeAttributes(attrib, ITableAttributes.CELL_VERT_ALIGN);
-
-        w.writeControlWord("cellx" + xPos);
+        w.writeControlWord("cellx", xPos);
 
         return xPos;
     }
@@ -276,6 +254,13 @@ public class RtfTableCell
             return;
         }
 
+        w.writeControlWord("intbl");
+        
+        if (getTable().isNestedTable()) {
+            //itap is the depth (level) of the current nested table
+            w.writeControlWord("itap", getTable().getNestedTableDepth() + 1);
+        }
+        
         super.writeRtfPrefix(w);
     }
 
@@ -289,15 +274,9 @@ public class RtfTableCell
             return;
         }
 
-        if (getRow().getTable().isNestedTable()) {
+        if (getTable().isNestedTable()) {
             //nested table
-            if (lastBreak == null) {
-                w.writeControlWord("nestcell");
-            }
-            w.writeGroupMark(true);
-            w.writeControlWord("nonesttables");
-            w.writeControlWord("par");
-            w.writeGroupMark(false);
+            w.writeControlWord("nestcell");
         } else {
             // word97 hangs if cell does not contain at least one "par" control word
             // TODO this is what causes the extra spaces in nested table of test
@@ -308,27 +287,10 @@ public class RtfTableCell
                 w.writeControlWord("qc");
             } else if (setRight) {
                 w.writeControlWord("qr");
-            } else {
-                RtfElement lastChild = null;
-
-                if (getChildren().size() > 0) {
-                    lastChild = (RtfElement) getChildren().get(getChildren().size() - 1);
-                }
-
-                if (lastChild != null && lastChild instanceof RtfTextrun) {
-                    //Don't write \ql in order to allow for example a right aligned paragraph
-                    //in a not right aligned table-cell to write its \qr.
-                } else {
-                    w.writeControlWord("ql");
-                }
             }
 
-            if (!containsText()) {
-                w.writeControlWord("intbl");
-            }
-            if (lastBreak == null) {
-                w.writeControlWord("cell");
-            }
+            w.writeControlWord("cell");
+            w.newLine();
         }
     }
 
@@ -361,50 +323,9 @@ public class RtfTableCell
     int getCellWidth() { return this.cellWidth; }
 
     /**
-     * Overridden so that nested tables cause extra rows to be added after the row
-     * that contains this cell
-     * disabled for V0.3 - nested table support is not done yet
-     * @throws IOException for I/O problems
-     */
-    /*
-    protected void writeRtfContent()
-    throws IOException {
-        int extraRowIndex = 0;
-        RtfTableCell extraCell = null;
-
-        for (Iterator it = getChildren().iterator(); it.hasNext();) {
-            final RtfElement e = (RtfElement)it.next();
-            if (e instanceof RtfTable) {
-                // nested table - render its cells in supplementary rows after current row,
-                // and put the remaining content of this cell in a new cell after nested table
-                // Line added by Boris Poudérous
-        parentRow.getExtraRowSet().setParentITableColumnsInfo(
-                ((RtfTable)this.getParentOfClass(e.getClass())).getITableColumnsInfo());
-        extraRowIndex = parentRow.getExtraRowSet().addTable((RtfTable)e,
-                extraRowIndex, widthOffset);
-                // Boris Poudérous added the passing of the current cell
-                // attributes to the new cells (in order not to have cell without
-                // border for example)
-        extraCell = parentRow.getExtraRowSet().createExtraCell(extraRowIndex,
-                widthOffset, this.getCellWidth(), attrib);
-                extraRowIndex++;
-
-            } else if (extraCell != null) {
-                // we are after a nested table, add elements to the extra cell created for them
-                extraCell.addChild(e);
-
-            } else {
-                // before a nested table, normal rendering
-                e.writeRtf();
-            }
-        }
-    }*/
-
-    /**
      * A table cell always contains "useful" content, as it is here to take some
      * space in a row.
-     * Use containsText() to find out if there is really some useful content in the cell.
-     * TODO: containsText could use the original isEmpty implementation?
+     * 
      * @return false (always)
      */
     public boolean isEmpty() {
@@ -443,21 +364,14 @@ public class RtfTableCell
      * Returns the current RtfTextrun object.
      * Opens a new one if necessary.
      * @return The RtfTextrun object
-     * @throws IOException Thrown when an IO-problem occurs
      */
     public RtfTextrun getTextrun() {
         RtfAttributes attrs = new RtfAttributes();
-
-        if (!getRow().getTable().isNestedTable()) {
-            attrs.set("intbl");
-        }
-
         RtfTextrun textrun = RtfTextrun.getTextrun(this, attrs);
 
         //Suppress the very last \par, because the closing \cell applies the
         //paragraph attributes.
         textrun.setSuppressLastPar(true);
-
         return textrun;
     }
 
@@ -466,52 +380,17 @@ public class RtfTableCell
      * @return The parent row.
      */
     public RtfTableRow getRow() {
-        RtfElement e = this;
-        while (e.parent != null) {
-            if (e.parent instanceof RtfTableRow) {
-                return (RtfTableRow) e.parent;
-            }
-
-            e = e.parent;
-        }
-
-        return null;
+        return (RtfTableRow)parent;
     }
 
     /**
-     * The table cell decides whether or not a newly added paragraph break
-     * will be used to write the cell-end control word.
-     * For nested tables it is not necessary.
-     *
-     * @param parBreak the paragraph break element
-     * @param breakDepth The depth is necessary for picking the correct break element.
-     * If it is deeper inside the whole cell it will be used, and if there is something on
-     * the same level (depth) it is also set because the method is called for all breaks
-     * in the correct order.
+     * Get the parent tab;e.
+     * @return The parent row.
      */
-    public void setLastParagraph(RtfParagraphBreak parBreak, int breakDepth) {
-        if (parBreak != null && breakDepth >= lastBreakDepth) {
-            lastBreak = parBreak;
-            lastBreakDepth = breakDepth;
-        }
+    public RtfTable getTable() {
+        return getRow().getTable();
     }
-
-    /**
-     * The last paragraph break was just stored before,
-     * now the control word is really switched
-     */
-    public void finish() {
-        //If it is nested and contains another table do not set it
-        boolean inNestedTable = getRow().getTable().isNestedTable();
-        if (inNestedTable && containsNestedTable) {
-            lastBreak = null;
-        } else if (lastBreak != null) {
-            lastBreak.switchControlWord(inNestedTable
-                    ? TABLE_CELL_NESTED_PARAGRAPH
-                    : TABLE_CELL_PARAGRAPH);
-      }
-    }
-
+    
     /** 
      * {@inheritDoc}
      * Closes any previous child.
@@ -522,10 +401,6 @@ public class RtfTableCell
             previousChild.close();
         }
 
-        if (e instanceof RtfTable) {
-            containsNestedTable = true;
-        }
-        
         super.addChild(e);
     }
 }

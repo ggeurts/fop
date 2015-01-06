@@ -26,9 +26,6 @@ package org.apache.fop.render.rtf.rtflib.rtfdoc;
  * the FOP project.
  */
 
-import java.io.IOException;
-import org.apache.fop.render.rtf.rtflib.exceptions.RtfStructureException;
-
 /**
  * <p>RTF Bookmark container implementation.
  * Nearly all containers or elements can have a bookmark, that is why the bookmark container is

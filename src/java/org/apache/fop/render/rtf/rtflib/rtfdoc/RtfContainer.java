@@ -32,7 +32,6 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
-import org.apache.fop.render.rtf.rtflib.exceptions.RtfStructureException;
 
 /**
  * <p>An RtfElement that can contain other elements.</p>
@@ -135,7 +134,7 @@ public class RtfContainer extends RtfElement {
         boolean result = false;
         for (Iterator it = children.iterator(); it.hasNext();) {
             final RtfElement e = (RtfElement)it.next();
-            if (e instanceof RtfText) {
+            if (e instanceof RtfText || e instanceof RtfString) {
                 result = !e.isEmpty();
             } else if (e instanceof RtfContainer) {
                 if (((RtfContainer)e).containsText()) {
